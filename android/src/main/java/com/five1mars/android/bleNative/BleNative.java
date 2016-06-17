@@ -544,7 +544,7 @@ public class BleNative extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void connect(ReadableMap param, Callback onError, ReadableMap options) {
+    public void connect(ReadableMap param, ReadableMap options, Callback onError) {
         try {
             String id = param.getString(PARAM_CONNECT_ID);
             boolean autoConnect = (options != null) ? options.getBoolean("autoConnect") : false;

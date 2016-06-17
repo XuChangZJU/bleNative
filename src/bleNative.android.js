@@ -343,7 +343,7 @@ class BleNative extends EventEmitter{
     }
 
     connect(peripheral, onError, options) {
-        BleNativeAndroid.connect({id: peripheral.id}, onError, options);
+        BleNativeAndroid.connect({id: peripheral.id}, options, onError);
     }
 
     readDescriptor(peripheralId, serviceUuid, characteristicUuid, descriptorUuid,  onError) {
