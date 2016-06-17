@@ -544,12 +544,13 @@ public class BleNative extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void connect(ReadableMap param, Callback onError) {
+    public void connect(ReadableMap param, Callback onError, ReadableMap options) {
         try {
             String id = param.getString(PARAM_CONNECT_ID);
+            boolean autoConnect = (options != null) ? options.getBoolean("autoConnect") : false;
 
             BluetoothDevice device = mAdapter.getRemoteDevice(id);
-            BluetoothGatt bluetoothGatt = device.connectGatt(getReactApplicationContext(), false, mGattCallback);
+            BluetoothGatt bluetoothGatt = device.connectGatt(getReactApplicationContext(), autoConnect, mGattCallback);
             refreshDeviceCache(bluetoothGatt);
         }
         catch (Exception e) {

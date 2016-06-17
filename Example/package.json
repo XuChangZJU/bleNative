@@ -4,8 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "remotedev": "remotedev --hostname=192.168.10.225 --port=8000"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "react":"^0.14.8",
