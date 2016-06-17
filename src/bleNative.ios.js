@@ -104,7 +104,7 @@ class BleNative extends EventEmitter{
     }
 
     destroy() {
-        BleNativeIOS.destroy();
+        return;
     }
 
     /**
