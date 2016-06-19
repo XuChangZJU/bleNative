@@ -80,7 +80,7 @@ class BleNative extends EventEmitter{
         DeviceEventEmitter.addListener('bleStateChanged', this.onStateChanged);
         DeviceEventEmitter.addListener('blePeripheralScanned', this.onPeripheralScanned);
         DeviceEventEmitter.addListener('blePeripheralConnected', this.onPeripheralConnected);
-        DeviceEventEmitter.addListener('blePeripheralDisonnected',this.onPeripheralDisconnected);
+        DeviceEventEmitter.addListener('blePeripheralDisconnected',this.onPeripheralDisconnected);
 
         //tips6:多出来的事件
         DeviceEventEmitter.addListener('blePeripheralFailToConnect',this.onPeripheralFailToConnect);
