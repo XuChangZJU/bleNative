@@ -24,6 +24,7 @@ class BleNative extends EventEmitter{
         this.onStateChanged = this.onStateChanged.bind(this);
         this.onPeripheralScanned = this.onPeripheralScanned.bind(this);
         this.onPeripheralConnected = this.onPeripheralConnected.bind(this);
+        this.onPeripheralDisconnected = this.onPeripheralDisconnected.bind(this);
 
         this.onPeripheralFailToConnect = this.onPeripheralFailToConnect.bind(this);
         this.onServicesDiscovered = this.onServicesDiscovered.bind(this);
