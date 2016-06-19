@@ -13,7 +13,7 @@
 NSString *EVENT_BLE_STATE_CHANGED = @"bleStateChanged";
 NSString *EVENT_BLE_PERIPHERAL_SCANNED = @"blePeripheralScanned";
 NSString *EVENT_BLE_PERIPHERAL_CONNECTED = @"blePeripheralConnected";
-NSString *EVENT_BLE_PERIPHERAL_DISCONNECTED = @"blePeripheralDisonnected";
+NSString *EVENT_BLE_PERIPHERAL_DISCONNECTED = @"blePeripheralDisconnected";
 
 NSString *EVENT_BLE_PERIPHERAL_FAIL_TO_CONNECT = @"blePeripheralFailToConnect";
 NSString *EVENT_BLE_SERVICES_DISCOVERED = @"bleServicesDiscovered";
@@ -573,7 +573,7 @@ RCT_EXPORT_METHOD(writeDescriptor:(NSDictionary *)param) {
 - (void) centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error {
   NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
   [paramDic setValue:peripheral.identifier.UUIDString forKey:COMMON_PERIPHERAL_UUID];
-  [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_PERIPHERAL_CONNECTED body:[paramDic copy]];
+  [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_PERIPHERAL_DISCONNECTED body:[paramDic copy]];
 }
 
 - (void) peripheral:(CBPeripheral *)peripheral didDiscoverServices:(NSError *)error {
