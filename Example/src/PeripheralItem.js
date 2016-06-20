@@ -3,8 +3,8 @@
  */
 'use strict'
 
-var React = require('react-native');
-var {
+import React from 'react';
+import {
     View,
     Text,
     StyleSheet,
@@ -12,7 +12,7 @@ var {
     TouchableHighlight,
     Animated,
     Platform
-    } = React;
+    } from "react-native";
 
 var Button = require('react-native-button');
 var showError = require('./showError');

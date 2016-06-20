@@ -3,8 +3,8 @@
  */
 'use strict'
 
-var React = require('react-native');
-var {
+import React from 'react';
+import {
     View,
     Text,
     TextInput,
@@ -12,7 +12,7 @@ var {
     ListView,
     TouchableHighlight,
     Animated
-    } = React;
+    } from "react-native";
 
 var showError = require('./showError');
 var Button = require('react-native-button');
@@ -192,7 +192,7 @@ const CharacteristicWriter = React.createClass({
                     </View>
                     <View style={{flexDirection: 'row', alignItems: 'center'}}>
                         <Button containerStyle={[styles.btnContainer, {width: 120}]}
-                                style={[styles.btn]}  onPress={Actions.dismiss}>
+                                style={[styles.btn]}  onPress={Actions.pop}>
                             关闭
                         </Button>
                         <Button containerStyle={[styles.btnContainer, {width: 120}]}

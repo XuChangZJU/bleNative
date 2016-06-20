@@ -3,19 +3,14 @@
  */
 'use strict'
 
-var React = require('react-native');
-
-var {
-    StyleSheet,
-    Text,
-    ToastAndroid,
-    TouchableWithoutFeedback,
+import {
     Alert
-    } = React;
+    } from "react-native";
 
 
 
 module.exports = function(err) {
     //ToastAndroid.show(err, ToastAndroid.SHORT);
+    const message = (typeof err === "string" ? err : err.message);
     Alert.alert('error',err.message);
 }

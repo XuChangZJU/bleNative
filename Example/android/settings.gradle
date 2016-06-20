@@ -1,7 +1,5 @@
 rootProject.name = 'BleNative'
 
 include ':app'
-
 include ':ble-native'
-project(':ble-native').projectDir = new File(settingsDir, '../../../BleNative/android')
-
+project(':ble-native').projectDir = new File(rootProject.projectDir, '../node_modules/ble-native/android')

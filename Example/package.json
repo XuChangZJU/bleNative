@@ -7,12 +7,12 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "react":"^0.14.8",
-    "react-native": "0.23.1",
-    "react-native-button": "^1.4.2",
-    "react-native-router-flux": "^2.2.2",
+    "ble-native": "file:../../BleNative",
     "debug": "^2.2.0",
     "events": "^1.0.2",
-    "ble-native":"file:../../BleNative"
+    "react": "^15.1.0",
+    "react-native": "^0.27.2",
+    "react-native-button": "^1.6.0",
+    "react-native-router-flux": "^3.30.0"
   }
 }

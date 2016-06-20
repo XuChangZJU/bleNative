@@ -3,15 +3,15 @@
  */
 'use strict';
 
-var React = require('react-native');
-var {
+import React from 'react';
+import {
     StyleSheet,
     Text,
     TouchableHighlight,
     TouchableNativeFeedback,
     View,
     ListView,
-    } = React;
+} from "react-native";
 
 var Button = require('react-native-button');
 var showError = require('./showError');
@@ -40,7 +40,7 @@ var PeripheralItemCell = React.createClass({
                     onPress={this.props.onSelect}
                     onShowUnderlay={this.props.onHighlight}
                     onHideUnderlay={this.props.onUnhighlight}
-                    >
+                >
                     <View style={styles.row}>
                         <View style={styles.textContainer}>
                             <Text style={styles.peripheralName} numberOfLines={2}>
@@ -145,7 +145,7 @@ var PeripheralScanner = React.createClass({
                     keyboardDismissMode="on-drag"
                     keyboardShouldPersistTaps={true}
                     showsVerticalScrollIndicator={false}
-                    />
+                />
             )
         }
         return (
@@ -266,14 +266,18 @@ var PeripheralScanner = React.createClass({
                 onHighlight={() => highlightRowFunc(sectionID, rowID)}
                 onUnhighlight={() => highlightRowFunc(null, null)}
                 peripheral={peripheral}
-                />
+            />
         );
     },
 
     selectPeripheral: function(peripheral: Object) {
-        bleNative.connect(peripheral, function(err) {
-            showError(err);
-        },{isAutomaticDiscovering:true})
+        bleNative.connect(peripheral,
+            function(err) {
+                showError(err);
+            }, {
+                isAutomaticDiscovering:true,
+                autoConnect: false
+            })
     }
 })
 
