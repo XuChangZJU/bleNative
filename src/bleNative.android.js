@@ -7,11 +7,10 @@ var debug = require('debug')('native-ble');
 
 const EventEmitter = require('events');
 
-var React = require('react-native');
-var {
+import {
     NativeModules,
     DeviceEventEmitter
-    } = React;
+} from "react-native";
 
 const BleNativeAndroid = NativeModules.BleNative;
 
