@@ -35,7 +35,7 @@
   "dependencies": {
     "debug": "^2.2.0",
     "events": "^1.0.2",
-    "react": "^15.1.0",
-    "react-native": "^0.27.2"
+    "react": "~15.2.1",
+    "react-native": "~0.31.0"
   }
 }
