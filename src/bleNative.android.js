@@ -80,20 +80,20 @@ class BleNative extends EventEmitter{
             this.onStateChanged({state: _state})
         });
     }
-    //??这里为什么要注释掉?bly    
-    destroy() {/*
-        DeviceEventEmitter.removeListener('bleStateChanged', this.onStateChanged);
-        DeviceEventEmitter.removeListener('blePeripheralScanned', this.onPeripheralScanned);
-        DeviceEventEmitter.removeListener('blePeripheralConnected', this.onPeripheralConnected);
-        DeviceEventEmitter.removeListener('blePeripheralDisconnected', this.onPeripheralDisconnected);
-        DeviceEventEmitter.removeListener('bleServicesDiscovered', this.onServicesDiscovered);
-        DeviceEventEmitter.removeListener('bleDescriptorRead', this.onDescriptorRead);
-        DeviceEventEmitter.removeListener('bleDescriptorWritten', this.onDescriptorWritten);
-        DeviceEventEmitter.removeListener('bleCharacteristicRead', this.onCharacteristicRead);
-        DeviceEventEmitter.removeListener('bleCharacteristicWritten', this.onCharacteristicWritten);
-        DeviceEventEmitter.removeListener('bleCharacteristicChanged', this.onCharacteristicChanged);
-        DeviceEventEmitter.removeListener('bleError', this.onBleError);*/
-        // DeviceEventEmitter.removeAllListeners();
+    
+
+    destroy() {
+        DeviceEventEmitter.removeAllListeners('bleStateChanged');
+        DeviceEventEmitter.removeAllListeners('blePeripheralScanned');
+        DeviceEventEmitter.removeAllListeners('blePeripheralConnected');
+        DeviceEventEmitter.removeAllListeners('blePeripheralDisconnected');
+        DeviceEventEmitter.removeAllListeners('bleServicesDiscovered');
+        DeviceEventEmitter.removeAllListeners('bleDescriptorRead');
+        DeviceEventEmitter.removeAllListeners('bleDescriptorWritten');
+        DeviceEventEmitter.removeAllListeners('bleCharacteristicRead');
+        DeviceEventEmitter.removeAllListeners('bleCharacteristicWritten');
+        DeviceEventEmitter.removeAllListeners('bleCharacteristicChanged');
+        DeviceEventEmitter.removeAllListeners('bleError');
         BleNativeAndroid.destroy();
     }
 

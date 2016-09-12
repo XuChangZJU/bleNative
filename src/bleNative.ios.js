@@ -106,6 +106,28 @@ class BleNative extends EventEmitter{
     }
 
     destroy() {
+        DeviceEventEmitter.removeAllListeners('bleStateChanged');
+        DeviceEventEmitter.removeAllListeners('blePeripheralScanned');
+        DeviceEventEmitter.removeAllListeners('blePeripheralConnected');
+        DeviceEventEmitter.removeAllListeners('blePeripheralDisconnected');
+
+        //tips6:多出来的事件
+        DeviceEventEmitter.removeAllListeners('blePeripheralFailToConnect');
+        DeviceEventEmitter.removeAllListeners('bleServicesDiscovered');
+        DeviceEventEmitter.removeAllListeners('bleIncludedServicesDiscovered');
+        DeviceEventEmitter.removeAllListeners('bleCharacteristicsDiscovered');
+        DeviceEventEmitter.removeAllListeners('bleDescriptorsDiscovered');
+        DeviceEventEmitter.removeAllListeners('bleFinishDiscover');
+
+        DeviceEventEmitter.removeAllListeners('bleCharacteristicChanged');
+        DeviceEventEmitter.removeAllListeners('bleCharacteristicRead');
+        DeviceEventEmitter.removeAllListeners('bleCharacteristicWritten');
+
+        DeviceEventEmitter.removeAllListeners('bleDescriptorChanged');
+        DeviceEventEmitter.removeAllListeners('bleDescriptorRead');
+        DeviceEventEmitter.removeAllListeners('bleDescriptorWritten');
+
+        DeviceEventEmitter.removeAllListeners('bleError');
         return;
     }
 
