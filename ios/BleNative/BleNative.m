@@ -180,19 +180,24 @@ RCT_EXPORT_METHOD(stopScan) {
 RCT_EXPORT_METHOD(connect:(NSDictionary *)param ) {
   
   NSString *peripheralUuidString = param[COMMON_PERIPHERAL_UUID];
+
   NSDictionary *options = param[COMMON_OPTIONS];
   isAutomaticDiscovering = options[PARAM_IS_AUTOMATIC];
-  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
-  NSArray *peripherals = [NSArray array];
-  peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
-  centralPeripheral = peripherals[0];
+
+    NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
+    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
+    NSArray *peripherals = [NSArray array];
+    peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
+   centralPeripheral = peripherals[0];
   [centralPeripheral setDelegate:self];
   [centralManager connectPeripheral:centralPeripheral options:nil];
 }
 
 RCT_EXPORT_METHOD(disconnect:(NSDictionary *)param) {
   NSString *peripheralUuidString = param[COMMON_PERIPHERAL_UUID];
-  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
+    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
   NSArray *peripherals = [NSArray array];
   peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
   centralPeripheral = peripherals[0];
@@ -202,7 +207,9 @@ RCT_EXPORT_METHOD(disconnect:(NSDictionary *)param) {
 
 RCT_EXPORT_METHOD(discoverServices:(NSDictionary *)param) {
   NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
-  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
+    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
   NSArray *peripherals = [NSArray array];
   peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
   centralPeripheral = peripherals[0];
@@ -212,7 +219,9 @@ RCT_EXPORT_METHOD(discoverServices:(NSDictionary *)param) {
 RCT_EXPORT_METHOD(discoverIncludedServices:(NSDictionary *)param) {
   NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
   NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
-  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
+    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
   NSArray *peripherals = [NSArray array];
   peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
   centralPeripheral = peripherals[0];
@@ -233,7 +242,9 @@ RCT_EXPORT_METHOD(discoverIncludedServices:(NSDictionary *)param) {
 RCT_EXPORT_METHOD(discoverCharacteristics:(NSDictionary *)param) {
   NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
   NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
-  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
+    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
   NSArray *peripherals = [NSArray array];
   peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
   centralPeripheral = peripherals[0];
@@ -255,7 +266,9 @@ RCT_EXPORT_METHOD(discoverDescriptors:(NSDictionary *)param) {
   NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
   NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
   NSString *characteristicUuidString  = param[PARAM_COMMON_CHARACTERISTIC_UUID];
-  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
+    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
   NSArray *peripherals = [NSArray array];
   peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
   centralPeripheral = peripherals[0];
@@ -291,8 +304,10 @@ RCT_EXPORT_METHOD(setCharacteristicNotification:(NSDictionary *)param) {
   NSString *characteristicUuidString = param[PARAM_COMMON_CHARACTERISTIC_UUID];
   NSDictionary *options = param[COMMON_OPTIONS];
   NSNumber *enable = options[PARAM_SET_CHARACTERISTIC_NOTIFICATION_ENABLE];
-  
-  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+
+//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
+    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
   NSArray *peripherals = [NSArray array];
   peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
   centralPeripheral= peripherals[0];
@@ -327,12 +342,14 @@ RCT_EXPORT_METHOD(readCharacteristic:(NSDictionary *)param) {
   NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
   NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
   NSString *characteristicUuidString = param[PARAM_COMMON_CHARACTERISTIC_UUID];
-  
-  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+
+//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
+    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
   NSArray *peripherals = [NSArray array];
   peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
   centralPeripheral = peripherals[0];
-  
+
   NSArray *services = centralPeripheral.services;
   CBService *service;
   BOOL serviceExist = false;
@@ -366,8 +383,10 @@ RCT_EXPORT_METHOD(writeCharacteristic:(NSDictionary *)param) {
   NSDictionary *options = param[COMMON_OPTIONS];
   NSNumber *type = options[PARAM_WRITE_CHARACTERISTIC_TYPE];
   NSInteger writeType = [type integerValue];
-    
-  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+
+//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
+    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
   NSArray *peripherals = [NSArray array];
   peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
   centralPeripheral = peripherals[0];
@@ -399,7 +418,7 @@ RCT_EXPORT_METHOD(writeCharacteristic:(NSDictionary *)param) {
       }
       NSData *data = [[NSData alloc] initWithBytes:bytes length:value.count];
       [centralPeripheral writeValue:data forCharacteristic:characteristic type:writeType];
-      
+
     }
   }
 }
@@ -409,12 +428,14 @@ RCT_EXPORT_METHOD(readDescriptor:(NSDictionary *)param) {
   NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
   NSString *characteristicUuidString = param[PARAM_COMMON_CHARACTERISTIC_UUID];
   NSString *descriptorUuidString = param[PARAM_COMMON_DESCRIPTOR_UUID];
-  
-  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+
+//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
+    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
   NSArray *peripherals = [NSArray array];
   peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
   centralPeripheral = peripherals[0];
-  
+
   NSArray *services = centralPeripheral.services;
   CBService *service;
   BOOL serviceExist = false;
@@ -458,8 +479,10 @@ RCT_EXPORT_METHOD(writeDescriptor:(NSDictionary *)param) {
   NSString *characteristicUuidString = param[PARAM_COMMON_CHARACTERISTIC_UUID];
   NSString *descriptorUuidString = param[PARAM_COMMON_DESCRIPTOR_UUID];
   NSArray *value = param[PARAM_COMMON_VALUE];
-  
-  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+
+//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
+    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
   NSArray *peripherals = [NSArray array];
   peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
   centralPeripheral = peripherals[0];
