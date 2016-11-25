@@ -30,6 +30,14 @@ function byteArrayToInt(first, second, third, fourth) {
     return value;
 }
 
+function intToByteArray(int) {
+    return [(int & 0xff), ((int >> 8) & 0xff), ((int >> 16) & 0xff), ((int >> 24) & 0xff)];
+}
+
+function shortToByteArray(short) {
+    return [(short & 0xff), ((short >> 8) & 0xff)];
+}
+
 
 function uuidToServiceName(uuid) {
     return "Unknown Service";
@@ -92,6 +100,8 @@ module.exports = {
     stringToByteArray,
     byteArrayToShort,
     byteArrayToInt,
+    intToByteArray,
+    shortToByteArray,
 
 
     uuidToServiceName,
