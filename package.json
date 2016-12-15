@@ -33,7 +33,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "debug": "^2.2.0",
     "events": "^1.0.2"
   }
 }
