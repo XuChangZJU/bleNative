@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.telecom.Call;
 import android.util.Log;
 import com.facebook.react.bridge.*;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
@@ -28,6 +27,7 @@ public class BleNative extends ReactContextBaseJavaModule {
 
     private static final String TAG = BleNative.class.getSimpleName();
 
+    private static final int MAX_PACKET_LENGTH = 20;
     private static final String STATE_UNSUPPORTED = "STATE_UNSUPPORTED";
     private static final String STATE_ADAPTER_DISABLED = "STATE_ADAPTER_DISABLED";
     private static final String STATE_OFF = "STATE_OFF";
@@ -105,6 +105,16 @@ public class BleNative extends ReactContextBaseJavaModule {
 
     private Map<String, BluetoothGatt> mGattMaps;
     private BluetoothAdapter mAdapter;
+    private class LongValueWriter {
+        public byte[] writingValue;
+        public int writingCursor;
+        public String writingPeripheralId;
+        public String writingServiceUuid;
+        public String writingCharacteristicUuid;
+        public Callback writingOnError;
+        public int writingSize;
+    }
+    private Map<String, LongValueWriter> mlvwMap = new HashMap<String, LongValueWriter>();
 
     private BroadcastReceiver mBleStateReceiver = new BroadcastReceiver() {
 
@@ -185,6 +195,14 @@ public class BleNative extends ReactContextBaseJavaModule {
                     mGattMaps.put(gatt.getDevice().getAddress(), gatt);
 
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    // 断连时要把这个设备的longValueWriter清空
+                    Iterator<LongValueWriter> iterator = BleNative.this.mlvwMap.values().iterator();
+                    while (iterator.hasNext()) {
+                        LongValueWriter writer = iterator.next();
+                        if (writer.writingPeripheralId.equals(getPeripheralId(gatt))) {
+                            BleNative.this.mlvwMap.remove(writer.writingCharacteristicUuid.concat(writer.writingPeripheralId));
+                        }
+                    }
                     Log.i(TAG, "Disconnected from GATT server.");
                     WritableMap param = Arguments.createMap();
                     param.putString(EVENT_COMMON_ID, gatt.getDevice().getAddress());
@@ -298,7 +316,27 @@ public class BleNative extends ReactContextBaseJavaModule {
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             try {
+                Log.i(TAG, "onCharacteristicWrite in " + System.currentTimeMillis() + " characteristicUuid：" + characteristic.getUuid().toString());
                 if(status == BluetoothGatt.GATT_SUCCESS) {
+                    LongValueWriter writer = BleNative.this.mlvwMap.get(characteristic.getUuid().toString().concat(getPeripheralId(gatt)));
+                    if (writer != null) {
+                        writer.writingCursor += writer.writingSize;
+                        if (writer.writingCursor < writer.writingValue.length) {
+                            // 还没写完，继续写
+
+                            int sizeToWrite = Math.min(MAX_PACKET_LENGTH, writer.writingValue.length - writer.writingCursor);
+                            byte[] value2 = new byte[sizeToWrite];
+                            System.arraycopy(writer.writingValue, writer.writingCursor, value2, 0, sizeToWrite);
+                            writer.writingSize = sizeToWrite;
+
+                            BleNative.this.writeCharacteristicInner(writer.writingPeripheralId, writer.writingServiceUuid, writer.writingCharacteristicUuid, value2, writer.writingOnError);
+                            return;
+                        }
+                        else {
+                            // 写完了，把这个结点删除之
+                            BleNative.this.mlvwMap.remove(writer.writingCharacteristicUuid.concat(writer.writingPeripheralId));
+                        }
+                    }
                     WritableMap jsResult = Arguments.createMap();
                     jsResult.putString(EVENT_COMMON_PERIPHERAL_ID, getPeripheralId(gatt));
                     jsResult.putString(EVENT_COMMON_SERVICE_UUID, characteristic.getService().getUuid().toString());
@@ -306,12 +344,24 @@ public class BleNative extends ReactContextBaseJavaModule {
                     jsResult.putArray(EVENT_COMMON_VALUE, constructBleByteArray(characteristic.getValue()));
 
                     sendEvent(EVENT_CHARACTERISTIC_WRITE, jsResult);
+
                 }
                 else {
-                    onBleError(gatt, new RuntimeException("onCharacteristicWrite errur, status : " + status));
+                    String error = "onCharacteristicWrite errur, status : " + status;
+                    LongValueWriter writer = BleNative.this.mlvwMap.get(characteristic.getUuid().toString().concat(getPeripheralId(gatt)));
+                    if (writer != null) {
+                        BleNative.this.mlvwMap.remove(writer.writingCharacteristicUuid.concat(writer.writingPeripheralId));
+                        writer.writingOnError.invoke(error);
+                    }
+                    onBleError(gatt, new RuntimeException(error));
                 }
             }
             catch (Exception e) {
+                LongValueWriter writer = BleNative.this.mlvwMap.get(characteristic.getUuid().toString().concat(getPeripheralId(gatt)));
+                if (writer != null) {
+                    BleNative.this.mlvwMap.remove(writer.writingCharacteristicUuid.concat(writer.writingPeripheralId));
+                    writer.writingOnError.invoke(e.getMessage());
+                }
                 onBleError(gatt, e);
             }
         }
@@ -319,6 +369,7 @@ public class BleNative extends ReactContextBaseJavaModule {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             try {
+                Log.i(TAG, "onCharacteristicChanged in " + System.currentTimeMillis() + " characteristicUuid：" + characteristic.getUuid().toString());
                 WritableMap jsResult = Arguments.createMap();
                 jsResult.putString(EVENT_COMMON_PERIPHERAL_ID, getPeripheralId(gatt));
                 jsResult.putString(EVENT_COMMON_SERVICE_UUID, characteristic.getService().getUuid().toString());
@@ -455,9 +506,6 @@ public class BleNative extends ReactContextBaseJavaModule {
         map.put("STATE_ON", BleState.STATE_ON.toString());
         map.put("STATE_TURNING_OFF", BleState.STATE_TURNING_OFF.toString());
 
-        Log.i(TAG, bytesToString(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE));
-        Log.i(TAG, bytesToString(BluetoothGattDescriptor.ENABLE_INDICATION_VALUE));
-        Log.i(TAG, bytesToString(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE));
 
         map.put("DISABLE_NOTIFICATION_VALUE", bytesToString(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE));
         map.put("ENABLE_INDICATION_VALUE", bytesToString(BluetoothGattDescriptor.ENABLE_INDICATION_VALUE));
@@ -534,7 +582,7 @@ public class BleNative extends ReactContextBaseJavaModule {
             mAdapter.startLeScan(uuids, mLeScanCallback);
         }
         else {*/
-            mAdapter.startLeScan(mLeScanCallback);
+        mAdapter.startLeScan(mLeScanCallback);
         //}
     }
 
@@ -645,23 +693,60 @@ public class BleNative extends ReactContextBaseJavaModule {
         }
     }
 
+    private void writeCharacteristicInner(String peripheralId, String serviceUuid, String characteristicUuid, byte[] value, Callback onError) {
+        BluetoothGatt gatt = mGattMaps.get(peripheralId);
+        BluetoothGattCharacteristic characteristic = gatt.getService(UUID.fromString(serviceUuid)).getCharacteristic(UUID.fromString(characteristicUuid));
+
+        Log.i(TAG, "writeCharacteristic in " + System.currentTimeMillis() + " characteristicUuid：" + characteristicUuid);
+        if(!characteristic.setValue(value) || !gatt.writeCharacteristic(characteristic)) {
+            onError.invoke("writeCharacteristic returns false");
+        }
+    }
 
     @ReactMethod
     public void writeCharacteristic(ReadableMap param, Callback onError) {
+        String peripheralId = param.getString(PARAM_COMMON_PERIPHERAL_ID);
+        String serviceUuid = param.getString(PARAM_COMMON_SERVICE_UUID);
+        String characteristicUuid = param.getString(PARAM_COMMON_CHARACTERISTIC_UUID);
         try {
-            String peripheralId = param.getString(PARAM_COMMON_PERIPHERAL_ID);
-            String serviceUuId = param.getString(PARAM_COMMON_SERVICE_UUID);
-            String characteristicUuid = param.getString(PARAM_COMMON_CHARACTERISTIC_UUID);
             ReadableArray valueArray = param.getArray(PARAM_COMMON_VALUE);
             byte[] value = decodeBleReadableArray(valueArray);
 
-            BluetoothGatt gatt = mGattMaps.get(peripheralId);
-            BluetoothGattCharacteristic characteristic = gatt.getService(UUID.fromString(serviceUuId)).getCharacteristic(UUID.fromString(characteristicUuid));
-            if(!characteristic.setValue(value) || !gatt.writeCharacteristic(characteristic)) {
-                onError.invoke("writeCharacteristic returns false");
+            byte[] value2;
+            if (value.length > MAX_PACKET_LENGTH) {
+                // 如果写的字节过大，则分批次写
+                LongValueWriter writer = new LongValueWriter();
+
+                writer.writingValue = value;
+                writer.writingCursor = 0;
+                writer.writingCharacteristicUuid = characteristicUuid;
+                writer.writingPeripheralId = peripheralId;
+                writer.writingServiceUuid = serviceUuid;
+                writer.writingOnError = onError;
+
+                // 根据characteristicUuid+peripheralId来查找，应该不可能重复吧
+                if(this.mlvwMap.get(characteristicUuid.concat(peripheralId)) != null) {
+                    onError.invoke("a new writing must wait for the writing long value success");
+                    return;
+                }
+                this.mlvwMap.put(characteristicUuid.concat(peripheralId), writer);
+
+                int sizeToWrite = Math.min(MAX_PACKET_LENGTH, writer.writingValue.length - writer.writingCursor);
+                value2 = new byte[sizeToWrite];
+
+                System.arraycopy(writer.writingValue, writer.writingCursor, value2, 0, sizeToWrite);
+                writer.writingSize = sizeToWrite;
             }
+            else {
+                value2 = value;
+            }
+            writeCharacteristicInner(peripheralId, serviceUuid, characteristicUuid, value2, onError);
         }
         catch (Exception e) {
+            LongValueWriter writer = this.mlvwMap.get(characteristicUuid.concat(peripheralId));
+            if (writer != null) {
+                this.mlvwMap.remove(writer.writingCharacteristicUuid.concat(writer.writingPeripheralId));
+            }
             onError.invoke(e.getMessage());
         }
     }
