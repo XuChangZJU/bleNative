@@ -3,7 +3,6 @@
  */
 'use strict'
 
-var debug = require('debug')('native-ble');
 
 const EventEmitter = require('events');
 
