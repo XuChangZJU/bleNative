@@ -165,7 +165,9 @@ RCT_EXPORT_METHOD(startScan:(NSDictionary *)filter) {
       [scanOptions setValue:@YES forKey:CBCentralManagerScanOptionAllowDuplicatesKey];
     }
     for(uuidString in uuidsStringArray){
-      [uuidsMutableArray addObject:[CBUUID UUIDWithString:uuidString]];
+        NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:uuidString];
+        [uuidsMutableArray addObject:proximityUUID];
+    
     }
     [centralManager scanForPeripheralsWithServices:[uuidsMutableArray copy] options:scanOptions];
   }else{
@@ -187,10 +189,16 @@ RCT_EXPORT_METHOD(connect:(NSDictionary *)param ) {
     NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
     NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
     NSArray *peripherals = [NSArray array];
-    peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
-   centralPeripheral = peripherals[0];
-  [centralPeripheral setDelegate:self];
-  [centralManager connectPeripheral:centralPeripheral options:nil];
+    @try {
+        peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
+        centralPeripheral = peripherals[0];
+        [centralPeripheral setDelegate:self];
+        [centralManager connectPeripheral:centralPeripheral options:nil];
+    }
+    @catch (NSException *exception) {
+        NSLog(@"%s\n%@", __FUNCTION__, exception);
+    }
+
 }
 
 RCT_EXPORT_METHOD(disconnect:(NSDictionary *)param) {
