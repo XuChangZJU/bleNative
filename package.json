@@ -1,6 +1,6 @@
 {
   "name": "ble-native",
-  "version": "1.1.0",
+  "version": "1.2.1",
   "description": "ble 4.0 for react-native",
   "main": "src/index.js",
   "files": [
