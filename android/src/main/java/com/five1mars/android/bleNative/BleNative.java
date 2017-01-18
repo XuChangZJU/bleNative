@@ -546,7 +546,7 @@ public class BleNative extends ReactContextBaseJavaModule {
 
         }
         else {
-            callback.invoke(BleState.STATE_UNSUPPORTED);
+            callback.invoke(BleState.STATE_UNSUPPORTED.toString());
         }
     }
 
