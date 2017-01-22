@@ -45,6 +45,8 @@ public class BleNative extends ReactContextBaseJavaModule {
 
     private static final String EVENT_STATE_CHANGE = "bleStateChanged";
     private static final String EVENT_STATE_CHANGE_PARAM_STATE = "state";
+    private static final String EVENT_BOND_CHANGE = "bondChanged";
+    private static final String EVENT_BOND_CHANGE_PARAM_STATE = "state";
 
     private static final String EVENT_BLE_PERIPHERAL_SCANNED = "blePeripheralScanned";
     private static final String EVENT_BLE_PERIPHERAL_SCANNED_PARAM_DEVICE_NAME = "deviceName";
@@ -121,25 +123,49 @@ public class BleNative extends ReactContextBaseJavaModule {
         @Override
         public void onReceive(Context context, Intent intent) {
             try {
-                int blueState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
+                String action = intent.getAction();
                 WritableMap param = Arguments.createMap();
-                switch (blueState) {
-                    case BluetoothAdapter.STATE_OFF:
-                        param.putString(EVENT_STATE_CHANGE_PARAM_STATE, BleState.STATE_OFF.toString());
-                        break;
-                    case BluetoothAdapter.STATE_TURNING_ON:
-                        param.putString(EVENT_STATE_CHANGE_PARAM_STATE, BleState.STATE_TURNING_ON.toString());
-                        break;
-                    case BluetoothAdapter.STATE_ON:
-                        param.putString(EVENT_STATE_CHANGE_PARAM_STATE, BleState.STATE_ON.toString());
-                        break;
-                    case BluetoothAdapter.STATE_TURNING_OFF:
-                        param.putString(EVENT_STATE_CHANGE_PARAM_STATE, BleState.STATE_TURNING_OFF.toString());
-                        break;
-                    default:
-                        break;
+                if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) {
+                    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                    param.putString(EVENT_COMMON_ID, device.getAddress());
+                    switch (device.getBondState()) {
+                        case BluetoothDevice.BOND_BONDING:
+                            Log.i("BleNative", "正在配对......");
+                            param.putString(EVENT_BOND_CHANGE_PARAM_STATE, "bonding");
+                            break;
+                        case BluetoothDevice.BOND_BONDED:
+                            Log.i("BleNative", "完成配对");
+                            param.putString(EVENT_BOND_CHANGE_PARAM_STATE, "bonded");
+                            break;
+                        case BluetoothDevice.BOND_NONE:
+                            Log.i("BleNative", "取消配对");
+                            param.putString(EVENT_BOND_CHANGE_PARAM_STATE, "none");
+                        default:
+                            break;
+                    }
+                    sendEvent(EVENT_BOND_CHANGE, param);
                 }
-                sendEvent(EVENT_STATE_CHANGE, param);
+                else {
+                    assert (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action));
+                    int blueState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
+                    switch (blueState) {
+                        case BluetoothAdapter.STATE_OFF:
+                            param.putString(EVENT_STATE_CHANGE_PARAM_STATE, BleState.STATE_OFF.toString());
+                            break;
+                        case BluetoothAdapter.STATE_TURNING_ON:
+                            param.putString(EVENT_STATE_CHANGE_PARAM_STATE, BleState.STATE_TURNING_ON.toString());
+                            break;
+                        case BluetoothAdapter.STATE_ON:
+                            param.putString(EVENT_STATE_CHANGE_PARAM_STATE, BleState.STATE_ON.toString());
+                            break;
+                        case BluetoothAdapter.STATE_TURNING_OFF:
+                            param.putString(EVENT_STATE_CHANGE_PARAM_STATE, BleState.STATE_TURNING_OFF.toString());
+                            break;
+                        default:
+                            break;
+                    }
+                    sendEvent(EVENT_STATE_CHANGE, param);
+                }
             }
             catch (Exception e) {
                 onBleError(null, e);
@@ -541,12 +567,16 @@ public class BleNative extends ReactContextBaseJavaModule {
                 }
 
                 // 注册蓝牙状态监听
-                getReactApplicationContext().registerReceiver(mBleStateReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+                // 增加蓝牙bond状态监听
+                IntentFilter intent = new IntentFilter();
+                intent.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+                intent.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+                getReactApplicationContext().registerReceiver(mBleStateReceiver, intent);
             }
 
         }
         else {
-            callback.invoke(BleState.STATE_UNSUPPORTED.toString());
+            callback.invoke(BleState.STATE_UNSUPPORTED);
         }
     }
 
@@ -603,6 +633,69 @@ public class BleNative extends ReactContextBaseJavaModule {
         }
         catch (Exception e) {
             onError.invoke(e.getMessage());
+        }
+    }
+
+    @ReactMethod
+    public void createBond(ReadableMap param, Callback onError) {
+        try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                onError.invoke("本设备版本不支持绑定外设");
+                return;
+            }
+            String id = param.getString(PARAM_CONNECT_ID);
+
+            BluetoothDevice device = mAdapter.getRemoteDevice(id);
+            if (!device.createBond()) {
+                onError.invoke("与设备绑定时发生错误");
+            }
+        }
+        catch (Exception e) {
+            onError.invoke(e.getMessage());
+        }
+    }
+
+    @ReactMethod
+    public void isBond(ReadableMap param, Promise promise) {
+        try {
+            String id = param.getString(PARAM_CONNECT_ID);
+
+            Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
+            Iterator<BluetoothDevice> iterator = bondedDevices.iterator();
+            while (iterator.hasNext()) {
+                BluetoothDevice device = iterator.next();
+                if (device.getAddress().equals(id)) {
+                    promise.resolve(true);
+                    return;
+                }
+            }
+            promise.resolve(false);
+        }
+        catch (Exception e) {
+            promise.reject(e);
+        }
+    }
+
+    @ReactMethod
+    public void removeBond(ReadableMap param, Callback callback) {
+        try {
+            String id = param.getString(PARAM_CONNECT_ID);
+
+            Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
+            Iterator<BluetoothDevice> iterator = bondedDevices.iterator();
+            while (iterator.hasNext()) {
+                BluetoothDevice device = iterator.next();
+                if (device.getAddress().equals(id)) {
+                    Method m = device.getClass()
+                            .getMethod("removeBond", (Class[]) null);
+                    m.invoke(device, (Object[]) null);
+                    return;
+                }
+            }
+            return;
+        }
+        catch (Exception e) {
+            callback.invoke(e.getMessage());
         }
     }
 

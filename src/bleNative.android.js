@@ -18,6 +18,7 @@ class BleNative extends EventEmitter{
 
     constructor() {
         super();
+        this.onBondChanged = this.onBondChanged.bind(this);
         this.onStateChanged = this.onStateChanged.bind(this);
         this.onPeripheralScanned = this.onPeripheralScanned.bind(this);
         this.onPeripheralConnected = this.onPeripheralConnected.bind(this);
@@ -64,6 +65,7 @@ class BleNative extends EventEmitter{
     }
 
     init() {
+        DeviceEventEmitter.addListener('bondChanged', this.onBondChanged);
         DeviceEventEmitter.addListener('bleStateChanged', this.onStateChanged);
         DeviceEventEmitter.addListener('blePeripheralScanned', this.onPeripheralScanned);
         DeviceEventEmitter.addListener('blePeripheralConnected', this.onPeripheralConnected);
@@ -94,6 +96,19 @@ class BleNative extends EventEmitter{
         DeviceEventEmitter.removeAllListeners('bleCharacteristicChanged');
         DeviceEventEmitter.removeAllListeners('bleError');
         BleNativeAndroid.destroy();
+    }
+
+    /**
+     *
+     * emit  event: "bondChanged"
+     * emit  (object){
+     *          id: "AA:BB:CC:DD:EE:FF",
+     *          state: "bonding/bonded/none"
+     *       }
+     *
+     */
+    onBondChanged(e) {
+        this.emit('bondChanged', e);
     }
 
     /**
@@ -342,6 +357,20 @@ class BleNative extends EventEmitter{
 
     connect(peripheral, onError, options) {
         BleNativeAndroid.connect({id: peripheral.id}, options, onError);
+    }
+
+    isBond(peripheral) {
+        const result = BleNativeAndroid.isBond({ id: peripheral.id });
+        console.warn(result);
+        return result;
+    }
+
+    createBond(peripheral, onError) {
+        BleNativeAndroid.createBond({ id: peripheral.id }, onError);
+    }
+
+    removeBond(peripheral, onError) {
+        BleNativeAndroid.removeBond({ id: peripheral.id }, onError);
     }
 
     readDescriptor(peripheralId, serviceUuid, characteristicUuid, descriptorUuid,  onError) {
