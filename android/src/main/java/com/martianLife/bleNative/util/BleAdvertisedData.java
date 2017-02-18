@@ -1,4 +1,4 @@
-package com.five1mars.android.bleNative.util;
+package com.martianLife.bleNative.util;
 
 import java.util.List;
 import java.util.UUID;

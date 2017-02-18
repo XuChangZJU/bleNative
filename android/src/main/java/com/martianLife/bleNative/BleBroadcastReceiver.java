@@ -1,4 +1,4 @@
-package com.five1mars.android.bleNative;
+package com.martianLife.bleNative;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

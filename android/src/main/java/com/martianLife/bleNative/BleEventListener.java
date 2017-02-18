@@ -1,4 +1,4 @@
-package com.five1mars.android.bleNative;
+package com.martianLife.bleNative;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;

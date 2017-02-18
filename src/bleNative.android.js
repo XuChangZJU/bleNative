@@ -77,11 +77,13 @@ class BleNative extends EventEmitter{
         DeviceEventEmitter.addListener('bleCharacteristicWritten', this.onCharacteristicWritten);
         DeviceEventEmitter.addListener('bleCharacteristicChanged', this.onCharacteristicChanged);
         DeviceEventEmitter.addListener('bleError', this.onBleError);
-        BleNativeAndroid.init(_state => {
-            this.onStateChanged({state: _state})
-        });
+        BleNativeAndroid.init().then(
+            _state => {
+                this.onStateChanged({state: _state})
+            }
+        );
     }
-    
+
 
     destroy() {
         DeviceEventEmitter.removeAllListeners('bleStateChanged');
@@ -348,15 +350,15 @@ class BleNative extends EventEmitter{
     }
 
     disconnect(peripheral, onError) {
-        BleNativeAndroid.disconnect(peripheral, onError);
+        BleNativeAndroid.disconnect(peripheral);
     }
 
     setAdapter(enabled, onError) {
-        BleNativeAndroid.set(enabled, onError);
+        BleNativeAndroid.set(enabled);
     }
 
     connect(peripheral, onError, options) {
-        BleNativeAndroid.connect({id: peripheral.id}, options, onError);
+        BleNativeAndroid.connect({id: peripheral.id}, options);
     }
 
     isBond(peripheral) {
@@ -366,11 +368,11 @@ class BleNative extends EventEmitter{
     }
 
     createBond(peripheral, onError) {
-        BleNativeAndroid.createBond({ id: peripheral.id }, onError);
+        BleNativeAndroid.createBond({ id: peripheral.id });
     }
 
     removeBond(peripheral, onError) {
-        BleNativeAndroid.removeBond({ id: peripheral.id }, onError);
+        BleNativeAndroid.removeBond({ id: peripheral.id });
     }
 
     readDescriptor(peripheralId, serviceUuid, characteristicUuid, descriptorUuid,  onError) {
@@ -379,8 +381,7 @@ class BleNative extends EventEmitter{
                 serviceUuid,
                 characteristicUuid,
                 descriptorUuid
-            },
-            onError
+            }
         );
     }
 
@@ -391,8 +392,7 @@ class BleNative extends EventEmitter{
                 characteristicUuid,
                 descriptorUuid,
                 value
-            },
-            onError
+            }
         );
     }
 
@@ -401,8 +401,7 @@ class BleNative extends EventEmitter{
                 peripheralId,
                 serviceUuid,
                 characteristicUuid
-            },
-            onError
+            }
         );
     }
 
@@ -412,8 +411,7 @@ class BleNative extends EventEmitter{
                 serviceUuid,
                 characteristicUuid,
                 value
-            },
-            onError
+            }
         );
     }
 
@@ -434,8 +432,7 @@ class BleNative extends EventEmitter{
                 serviceUuid,
                 characteristicUuid,
                 enable: options.enable
-            },
-            onError);
+            });
     }
 }
 
