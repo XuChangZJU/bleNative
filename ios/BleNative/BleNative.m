@@ -196,21 +196,25 @@ RCT_EXPORT_METHOD(connect:(NSDictionary *)param ) {
         [centralManager connectPeripheral:centralPeripheral options:nil];
     }
     @catch (NSException *exception) {
-        NSLog(@"%s\n%@", __FUNCTION__, exception);
+//        NSLog(@"%s\n%@", __FUNCTION__, exception);
     }
 
 }
 
 RCT_EXPORT_METHOD(disconnect:(NSDictionary *)param) {
-  NSString *peripheralUuidString = param[COMMON_PERIPHERAL_UUID];
+    NSString *peripheralUuidString = param[COMMON_PERIPHERAL_UUID];
 //  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
     NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
     NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
-  NSArray *peripherals = [NSArray array];
-  peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
-  centralPeripheral = peripherals[0];
-
-  [centralManager cancelPeripheralConnection:centralPeripheral];
+    NSArray *peripherals = [NSArray array];
+    @try {
+        peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
+        centralPeripheral = peripherals[0];
+        [centralManager cancelPeripheralConnection:centralPeripheral];
+        }
+    @catch (NSException *exception) {
+//        NSLog(@"%s\n%@", __FUNCTION__, exception);
+    }
 }
 
 RCT_EXPORT_METHOD(discoverServices:(NSDictionary *)param) {
@@ -355,8 +359,13 @@ RCT_EXPORT_METHOD(readCharacteristic:(NSDictionary *)param) {
     NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
     NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
   NSArray *peripherals = [NSArray array];
-  peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
-  centralPeripheral = peripherals[0];
+    @try {
+        peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
+        centralPeripheral = peripherals[0];
+    }
+    @catch (NSException *exception) {
+//        NSLog(@"%s\n%@", __FUNCTION__, exception);
+    }
 
   NSArray *services = centralPeripheral.services;
   CBService *service;
@@ -391,13 +400,18 @@ RCT_EXPORT_METHOD(writeCharacteristic:(NSDictionary *)param) {
   NSDictionary *options = param[COMMON_OPTIONS];
   NSNumber *type = options[PARAM_WRITE_CHARACTERISTIC_TYPE];
   NSInteger writeType = [type integerValue];
-
+   
 //  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
     NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
     NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
   NSArray *peripherals = [NSArray array];
-  peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
-  centralPeripheral = peripherals[0];
+    @try {
+        peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
+        centralPeripheral = peripherals[0];
+    }
+    @catch (NSException *exception) {
+//        NSLog(@"%s\n%@", __FUNCTION__, exception);
+    }
   NSArray *services = centralPeripheral.services;
   CBService *service;
   BOOL serviceExist = false;
@@ -441,8 +455,13 @@ RCT_EXPORT_METHOD(readDescriptor:(NSDictionary *)param) {
     NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
     NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
   NSArray *peripherals = [NSArray array];
-  peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
-  centralPeripheral = peripherals[0];
+    @try {
+        peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
+        centralPeripheral = peripherals[0];
+    }
+    @catch (NSException *exception) {
+//        NSLog(@"%s\n%@", __FUNCTION__, exception);
+    }
 
   NSArray *services = centralPeripheral.services;
   CBService *service;
@@ -492,8 +511,13 @@ RCT_EXPORT_METHOD(writeDescriptor:(NSDictionary *)param) {
     NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
     NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
   NSArray *peripherals = [NSArray array];
-  peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
-  centralPeripheral = peripherals[0];
+    @try {
+        peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
+        centralPeripheral = peripherals[0];
+    }
+    @catch (NSException *exception) {
+//        NSLog(@"%s\n%@", __FUNCTION__, exception);
+    }
   
   NSArray *services = centralPeripheral.services;
   CBService *service;
