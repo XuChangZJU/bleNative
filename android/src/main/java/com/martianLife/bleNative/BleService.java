@@ -31,73 +31,6 @@ import java.util.*;
 @TargetApi(18)
 public class BleService extends Service {
     private static final int MAX_PACKET_LENGTH = 20;
-    private static final String STATE_UNSUPPORTED = "STATE_UNSUPPORTED";
-    private static final String STATE_ADAPTER_DISABLED = "STATE_ADAPTER_DISABLED";
-    private static final String STATE_OFF = "STATE_OFF";
-    private static final String STATE_TURNING_ON = "STATE_TURNING_ON";
-    private static final String STATE_ON = "STATE_ON";
-    private static final String STATE_TURNING_OFF = "STATE_TURNING_OFF";
-
-    private static final String EVENT_COMMON_ID = "id";
-    private static final String EVENT_COMMON_UUID = "uuid";
-    private static final String EVENT_COMMON_VALUE = "value";
-    private static final String EVENT_COMMON_PERIPHERAL_ID = "peripheralId";
-    private static final String EVENT_COMMON_SERVICE_UUID = "serviceUuid";
-    private static final String EVENT_COMMON_CHARACTERISTIC_UUID = "characteristicUuid";
-    private static final String EVENT_COMMON_DESCRIPTOR_UUID = "descriptorUuid";
-
-    private static final String EVENT_STATE_CHANGE = "bleStateChanged";
-    private static final String EVENT_STATE_CHANGE_PARAM_STATE = "state";
-    private static final String EVENT_BOND_CHANGE = "bondChanged";
-    private static final String EVENT_BOND_CHANGE_PARAM_STATE = "state";
-
-    private static final String EVENT_BLE_PERIPHERAL_SCANNED = "blePeripheralScanned";
-    private static final String EVENT_BLE_PERIPHERAL_SCANNED_PARAM_DEVICE_NAME = "deviceName";
-    private static final String EVENT_BLE_PERIPHERAL_SCANNED_PARAM_RSSI = "rssi";
-    private static final String EVENT_BLE_PERIPHERAL_SCANNED_PARAM_ADDRESS = "address";
-
-    private static final String EVENT_PERIPHERAL_CONNECTED = "blePeripheralConnected";
-    private static final String EVENT_PERIPHERAL_DISCONNECTED = "blePeripheralDisconnected";
-
-    private static final String EVENT_SERVICES_DISCOVERED = "bleServicesDiscovered";
-    private static final String EVENT_SERVICES_DISCOVERED_PARAM_ADDRESS = "address";
-    private static final String EVENT_SERVICES_DISCOVERED_PARAM_DEVICE_NAME = "deviceName";
-    private static final String EVENT_SERVICES_DISCOVERED_PARAM_SERVICES = "services";
-    private static final String EVENT_SERVICES_DISCOVERED_PARAM_CHARACTERISTICS = "characteristics";
-    private static final String EVENT_SERVICES_DISCOVERED_PARAM_INCLUDED_SERVICES = "includedServices";
-    private static final String EVENT_SERVICES_DISCOVERED_PARAM_INSTANCE_ID = "instanceId";
-    private static final String EVENT_SERVICES_DISCOVERED_PARAM_TYPE = "type";
-    private static final String EVENT_SERVICES_DISCOVERED_PARAM_CHARACTERISTIC_INSTANCE_ID = "instanceId";
-    private static final String EVENT_SERVICES_DISCOVERED_PARAM_CHARACTERISTIC_PERMISSIONS = "permissions";
-    private static final String EVENT_SERVICES_DISCOVERED_PARAM_CHARACTERISTIC_STRING_VALUE = "stringValue";
-    private static final String EVENT_SERVICES_DISCOVERED_PARAM_CHARACTERISTIC_WRITE_TYPE = "writeType";
-    private static final String EVENT_SERVICES_DISCOVERED_PARAM_CHARACTERISTIC_PROPERTIES = "properties";
-    private static final String EVENT_SERVICES_DISCOVERED_PARAM_CHARACTERISTIC_DESCRIPTORS = "descriptors";
-    private static final String EVENT_SERVICES_DISCOVERED_PARAM_DESCRIPTOR_PERMISSIONS = "permissions";
-
-    private static final String EVENT_DESCRIPTOR_READ = "bleDescriptorRead";
-
-    private static final String EVENT_DESCRIPTOR_WRITE = "bleDescriptorWritten";
-
-    private static final String EVENT_CHARACTERISTIC_READ = "bleCharacteristicRead";
-
-    private static final String EVENT_CHARACTERISTIC_WRITE = "bleCharacteristicWritten";
-
-    private static final String EVENT_CHARACTERISTIC_CHANGED = "bleCharacteristicChanged";
-
-
-    private static final String EVENT_BLE_ERROR = "bleError";
-    private static final String EVENT_BLE_ERROR_PARAM_MESSAGE = "message";
-
-    private static final String PARAM_SCAN_UUIDS = "uuids";
-    private static final String PARAM_CONNECT_ID = "id";
-    private static final String PARAM_DISCONNECT_ID = "id";
-    private static final String PARAM_COMMON_PERIPHERAL_ID = "peripheralId";
-    private static final String PARAM_COMMON_SERVICE_UUID = "serviceUuid";
-    private static final String PARAM_COMMON_CHARACTERISTIC_UUID = "characteristicUuid";
-    private static final String PARAM_COMMON_DESCRIPTOR_UUID = "descriptorUuid";
-    private static final String PARAM_COMMON_VALUE = "value";
-    private static final String PARAM_SET_CHARACTERISTIC_NOTIFICATION_ENABLE = "enable";
 
     public static final int MSG_SET = 1;
     public static final int MSG_START_SCAN = 2;
@@ -149,6 +82,7 @@ public class BleService extends Service {
     public static final String EXTRA_DESCRIPTOR_UUID = "descriptorUuid";
     public static final String EXTRA_VALUE = "value";
     public static final String EXTRA_MESSAGE = "message";
+    public static final String EXTRA_EVENT = "event";
 
 
     private static final String TAG = BleService.class.getSimpleName();
@@ -319,7 +253,7 @@ public class BleService extends Service {
                     default:
                         break;
                 }
-                sendBroadcast(intent2);
+                sendBroadCastOrHeadlessTask(intent2);
             }
             else {
                 assert (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action));
@@ -341,7 +275,7 @@ public class BleService extends Service {
                     default:
                         break;
                 }
-                sendBroadcast(intent2);
+                sendBroadCastOrHeadlessTask(intent2);
             }
         }
     };
@@ -358,7 +292,7 @@ public class BleService extends Service {
 
                     Intent intent = new Intent(ACTION_CONNECTED);
                     intent.putExtra(EXTRA_ID, gatt.getDevice().getAddress());
-                    sendBroadcast(intent);
+                    sendBroadCastOrHeadlessTask(intent);
 
                     // 将这个gatt放入全局的map中
                     mGattMaps.put(gatt.getDevice().getAddress(), gatt);
@@ -375,7 +309,7 @@ public class BleService extends Service {
 
                     Intent intent = new Intent(ACTION_DISCONNECTED);
                     intent.putExtra(EXTRA_ID, gatt.getDevice().getAddress());
-                    sendBroadcast(intent);
+                    sendBroadCastOrHeadlessTask(intent);
 
                     mGattMaps.remove(gatt.getDevice().getAddress());
                     gatt.close();
@@ -406,7 +340,7 @@ public class BleService extends Service {
                 Intent intent = new Intent(ACTION_SERVICES_DISCOVERED);
                 intent.putExtra(EXTRA_VALUE, peripheral);
 
-                sendBroadcast(intent);
+                sendBroadCastOrHeadlessTask(intent);
 
             } else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
@@ -425,7 +359,7 @@ public class BleService extends Service {
                 intent.putExtra(EXTRA_DESCRIPTOR_UUID, descriptor.getUuid().toString());
                 intent.putExtra(EXTRA_VALUE, descriptor.getValue());
 
-                sendBroadcast(intent);
+                sendBroadCastOrHeadlessTask(intent);
             }
             else {
                 onBleError(gatt, new RuntimeException("onDescriptorRead errur, status : " + status));
@@ -442,7 +376,7 @@ public class BleService extends Service {
                 intent.putExtra(EXTRA_DESCRIPTOR_UUID, descriptor.getUuid().toString());
                 intent.putExtra(EXTRA_VALUE, descriptor.getValue());
 
-                sendBroadcast(intent);
+                sendBroadCastOrHeadlessTask(intent);
             }
             else {
                 onBleError(gatt, new RuntimeException("onDescriptorWrite errur, status : " + status));
@@ -458,7 +392,7 @@ public class BleService extends Service {
                 intent.putExtra(EXTRA_CHARACTERISTIC_UUID, characteristic.getUuid().toString());
                 intent.putExtra(EXTRA_VALUE, characteristic.getValue());
 
-                sendBroadcast(intent);
+                sendBroadCastOrHeadlessTask(intent);
             }
             else {
                 onBleError(gatt, new RuntimeException("onCharacteristicRead errur, status : " + status));
@@ -495,7 +429,7 @@ public class BleService extends Service {
                     intent.putExtra(EXTRA_CHARACTERISTIC_UUID, characteristic.getUuid().toString());
                     intent.putExtra(EXTRA_VALUE, characteristic.getValue());
 
-                    sendBroadcast(intent);
+                    sendBroadCastOrHeadlessTask(intent);
                 }
                 else {
                     String error = "onCharacteristicWrite errur, status : " + status;
@@ -527,7 +461,7 @@ public class BleService extends Service {
                 intent.putExtra(EXTRA_CHARACTERISTIC_UUID, characteristic.getUuid().toString());
                 intent.putExtra(EXTRA_VALUE, characteristic.getValue());
 
-                sendBroadcast(intent);
+                sendBroadCastOrHeadlessTask(intent);
             }
             catch (Exception e) {
                 onBleError(gatt, e);
@@ -557,7 +491,7 @@ public class BleService extends Service {
                         intent.putExtra(EXTRA_ADDRESS, device.getAddress());
                         intent.putExtra(EXTRA_NAME, deviceName);
                         intent.putExtra(EXTRA_RSSI, rssi);
-                        sendBroadcast(intent);
+                        sendBroadCastOrHeadlessTask(intent);
                     }
                     catch (Exception e) {
                         onBleError(null, e);
@@ -656,7 +590,7 @@ public class BleService extends Service {
         }
         intent.putExtra(EXTRA_MESSAGE, e.getMessage());
 
-        sendBroadcast(intent);
+        sendBroadCastOrHeadlessTask(intent);
     }
 
 
@@ -759,13 +693,13 @@ public class BleService extends Service {
             if (device.getAddress().equals(id)) {
                 Intent intent = new Intent(ACTION_BOND_STATE_GOT);
                 intent.putExtra(EXTRA_STATE, true);
-                sendBroadcast(intent);
+                sendBroadCastOrHeadlessTask(intent);
                 return;
             }
         }
         Intent intent = new Intent(ACTION_BOND_STATE_GOT);
         intent.putExtra(EXTRA_STATE, false);
-        sendBroadcast(intent);
+        sendBroadCastOrHeadlessTask(intent);
     }
 
     private void removeBond(Bundle bundle) {
@@ -810,7 +744,7 @@ public class BleService extends Service {
                 return;
         }
 
-        sendBroadcast(intent);
+        sendBroadCastOrHeadlessTask(intent);
     }
 
     private void disconnect(Bundle bundle) {
@@ -921,6 +855,27 @@ public class BleService extends Service {
                 this.mlvwMap.remove(writer.writingCharacteristicUuid.concat(writer.writingPeripheralId));
             }
             onBleError(null, e);
+        }
+    }
+    
+    private void sendBroadCastOrHeadlessTask(Intent intent) {
+        if (mBindedCount > 0) {
+            sendBroadcast(intent);
+        }
+        else {
+            // 在一些必要的点，发起headlessTask
+            switch (intent.getAction()) {
+                case ACTION_SERVICES_DISCOVERED:
+                case ACTION_STATE_CHANGED:
+                case ACTION_BOND_STATE_CHANGED:
+                    Intent intent2 = new Intent(this, BleEventListener.class);
+                    intent2.putExtras(intent);
+                    intent2.putExtra(EXTRA_EVENT, intent.getAction());
+                    startService(intent2);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

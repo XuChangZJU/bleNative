@@ -1,6 +1,7 @@
 package com.martianLife.bleNative;
 
 import android.annotation.TargetApi;
+import android.app.ActivityManager;
 import android.bluetooth.*;
 import android.content.*;
 import android.content.pm.PackageManager;
@@ -104,7 +105,6 @@ public class BleNative extends ReactContextBaseJavaModule {
 
     public BleNative(ReactApplicationContext reactContext) {
         super(reactContext);
-        Looper.prepare();
     }
 
     @Override
@@ -277,6 +277,15 @@ public class BleNative extends ReactContextBaseJavaModule {
         }
     };
 
+    private boolean isServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getReactApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @ReactMethod
     public void init(Promise promise) {
@@ -291,7 +300,9 @@ public class BleNative extends ReactContextBaseJavaModule {
                 mPromise = promise;
             }
 
-            getReactApplicationContext().startService(new Intent(getReactApplicationContext(), BleService.class));
+            if (!isServiceRunning(BleService.class)) {
+                getReactApplicationContext().startService(new Intent(getReactApplicationContext(), BleService.class));
+            }
             Intent intent = new Intent(getReactApplicationContext(), BleService.class);
             getReactApplicationContext().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
