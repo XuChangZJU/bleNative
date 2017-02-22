@@ -1,4 +1,4 @@
-package com.five1mars.android.bleNative;
+package com.martianLife.bleNative;
 
 import android.annotation.TargetApi;
 import android.bluetooth.*;
@@ -17,7 +17,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.util.*;
 
-import com.five1mars.android.bleNative.util.*;
+import com.martianLife.bleNative.util.*;
 
 /**
  * Created by Administrator on 2016/2/28.

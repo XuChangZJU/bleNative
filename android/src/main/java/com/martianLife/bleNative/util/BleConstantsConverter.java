@@ -1,4 +1,4 @@
-package com.five1mars.android.bleNative.util;
+package com.martianLife.bleNative.util;
 
 import android.support.annotation.Nullable;
 import com.facebook.react.bridge.Arguments;

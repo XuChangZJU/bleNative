@@ -1,4 +1,4 @@
-package com.five1mars.android.bleNative;
+package com.martianLife.bleNative;
 
 /**
  * Created by Administrator on 2016/2/29.
