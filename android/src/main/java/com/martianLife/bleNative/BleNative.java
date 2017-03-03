@@ -313,8 +313,14 @@ public class BleNative extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void destroy() {
-        getReactApplicationContext().unbindService(mConnection);
+    public void destroy(boolean stopService) {
+        if (stopService) {
+            getReactApplicationContext().unbindService(mConnection);
+            getReactApplicationContext().stopService(new Intent(getReactApplicationContext(), BleService.class));
+        }
+        else {
+            getReactApplicationContext().unbindService(mConnection);
+        }
     }
 
     @ReactMethod

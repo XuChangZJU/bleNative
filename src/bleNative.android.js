@@ -85,7 +85,7 @@ class BleNative extends EventEmitter{
     }
 
 
-    destroy() {
+    destroy(stopService = true) {
         DeviceEventEmitter.removeAllListeners('bleStateChanged');
         DeviceEventEmitter.removeAllListeners('blePeripheralScanned');
         DeviceEventEmitter.removeAllListeners('blePeripheralConnected');
@@ -97,7 +97,7 @@ class BleNative extends EventEmitter{
         DeviceEventEmitter.removeAllListeners('bleCharacteristicWritten');
         DeviceEventEmitter.removeAllListeners('bleCharacteristicChanged');
         DeviceEventEmitter.removeAllListeners('bleError');
-        BleNativeAndroid.destroy();
+        return BleNativeAndroid.destroy(stopService);
     }
 
     /**

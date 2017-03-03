@@ -125,7 +125,7 @@ public class BleService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        Log.d(TAG, "onBind");
+        Log.w(TAG, "onBind");
         if (mBindedCount == 0) {
             mBindedCount ++;
             return mMessenger.getBinder();
@@ -138,11 +138,14 @@ public class BleService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        Log.d(TAG, "onUnbind");
+        Log.w(TAG, "onUnbind");
         assert (mBindedCount == 1);
         mBindedCount --;
+        // disable rebind
         return super.onUnbind(intent);
     }
+
+
 
     private static class IncomingHandler extends Handler {
         private final WeakReference<BleService> mReference;
