@@ -209,7 +209,7 @@ public class BleNative extends ReactContextBaseJavaModule {
                     writableMap.putString(EVENT_COMMON_ID, intent.getStringExtra(BleService.EXTRA_ID));
                     writableMap.putString(EVENT_BLE_PERIPHERAL_SCANNED_PARAM_ADDRESS, intent.getStringExtra(BleService.EXTRA_ADDRESS));
                     writableMap.putString(EVENT_BLE_PERIPHERAL_SCANNED_PARAM_DEVICE_NAME, intent.getStringExtra(BleService.EXTRA_NAME));
-                    writableMap.putArray(EVENT_BLE_PERIPHERAL_SCANNED_PARAM_RSSI, constructBleByteArray(intent.getByteArrayExtra(BleService.EXTRA_RSSI)));
+                    writableMap.putInt(EVENT_BLE_PERIPHERAL_SCANNED_PARAM_RSSI, intent.getIntExtra(BleService.EXTRA_RSSI, 0));
 
                     sendEvent(EVENT_BLE_PERIPHERAL_SCANNED, writableMap);
                     break;
@@ -289,8 +289,8 @@ public class BleNative extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void init(Promise promise) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && getCurrentActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            BluetoothManager bluetoothManager = (BluetoothManager) getCurrentActivity().getSystemService(Context.BLUETOOTH_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && getReactApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            BluetoothManager bluetoothManager = (BluetoothManager) getReactApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
             BluetoothAdapter adapter = bluetoothManager.getAdapter();
             if(adapter == null) {
                 promise.resolve(BleState.STATE_UNSUPPORTED.toString());
@@ -549,7 +549,7 @@ public class BleNative extends ReactContextBaseJavaModule {
                 .emit(eventName, params);
     }
 
-    private WritableMap constructPeripheralMap(Peripheral peripheral) {
+    public static WritableMap constructPeripheralMap(Peripheral peripheral) {
         WritableMap peripheralMap = Arguments.createMap();
         peripheralMap.putString(EVENT_COMMON_ID, peripheral.id);
         peripheralMap.putString(EVENT_SERVICES_DISCOVERED_PARAM_ADDRESS, peripheral.address);
@@ -565,7 +565,7 @@ public class BleNative extends ReactContextBaseJavaModule {
         return peripheralMap;
     }
 
-    private WritableMap constructServiceMap(Service service) {
+    private static WritableMap constructServiceMap(Service service) {
         WritableMap serviceMap = Arguments.createMap();
         serviceMap.putString(EVENT_COMMON_UUID, service.uuid);
         serviceMap.putInt(EVENT_SERVICES_DISCOVERED_PARAM_INSTANCE_ID, service.instanceId);
@@ -588,7 +588,7 @@ public class BleNative extends ReactContextBaseJavaModule {
         return serviceMap;
     }
 
-    private WritableMap constructCharacteristicMap(Characteristic characteristic) {
+    private static WritableMap constructCharacteristicMap(Characteristic characteristic) {
         WritableMap characteristicMap = Arguments.createMap();
         characteristicMap.putString(EVENT_COMMON_UUID, characteristic.uuid);
         characteristicMap.putInt(EVENT_SERVICES_DISCOVERED_PARAM_CHARACTERISTIC_INSTANCE_ID, characteristic.instanceId);
@@ -608,7 +608,7 @@ public class BleNative extends ReactContextBaseJavaModule {
         return characteristicMap;
     }
 
-    private WritableMap constructDescriptorMap(Descriptor descriptor) {
+    private static WritableMap constructDescriptorMap(Descriptor descriptor) {
         WritableMap descriptorMap = Arguments.createMap();
         descriptorMap.putString(EVENT_COMMON_UUID, descriptor.uuid);
         descriptorMap.putArray(EVENT_SERVICES_DISCOVERED_PARAM_DESCRIPTOR_PERMISSIONS, BleConstantsConverter.getDescriptorPermissions(descriptor.permissions));
@@ -617,7 +617,7 @@ public class BleNative extends ReactContextBaseJavaModule {
         return descriptorMap;
     }
 
-    private WritableArray constructBleByteArray(byte[] value) {
+    private static WritableArray constructBleByteArray(byte[] value) {
         if(value == null)
             return null;
 

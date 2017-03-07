@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.os.*;
 import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
+import com.facebook.react.HeadlessJsTaskService;
 import com.facebook.react.bridge.*;
 import com.martianLife.bleNative.result.Characteristic;
 import com.martianLife.bleNative.result.Descriptor;
@@ -502,9 +503,6 @@ public class BleService extends Service {
                 }
             };
 
-    private void sendEvent(String eventName,
-                           @Nullable WritableMap params){
-    }
 
     public class Event {
         String name;
@@ -863,14 +861,17 @@ public class BleService extends Service {
     
     private void sendBroadCastOrHeadlessTask(Intent intent) {
         if (mBindedCount > 0) {
+            Log.w(TAG, "sendBroadcast，action：" + intent.getAction());
             sendBroadcast(intent);
         }
         else {
+            Log.w(TAG, "maybe start headless task，action：" + intent.getAction() );
             // 在一些必要的点，发起headlessTask
             switch (intent.getAction()) {
                 case ACTION_SERVICES_DISCOVERED:
                 case ACTION_STATE_CHANGED:
                 case ACTION_BOND_STATE_CHANGED:
+                    HeadlessJsTaskService.acquireWakeLockNow(this);
                     Intent intent2 = new Intent(this, BleEventListener.class);
                     intent2.putExtras(intent);
                     intent2.putExtra(EXTRA_EVENT, intent.getAction());
