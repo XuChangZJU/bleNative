@@ -254,6 +254,7 @@ public class BleNative extends ReactContextBaseJavaModule {
     private final ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
+            Log.w(TAG, "onServiceConnected");
             if (service != null) {
                 mRemoteBleService = new Messenger(service);
 
@@ -272,6 +273,7 @@ public class BleNative extends ReactContextBaseJavaModule {
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
+            Log.w(TAG, "onServiceDisconnected");
             unregisterBleReceiver();
             mRemoteBleService = null;
         }
@@ -293,14 +295,16 @@ public class BleNative extends ReactContextBaseJavaModule {
             BluetoothManager bluetoothManager = (BluetoothManager) getReactApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
             BluetoothAdapter adapter = bluetoothManager.getAdapter();
             if(adapter == null) {
+                Log.w(TAG, "init-unsupported");
                 promise.resolve(BleState.STATE_UNSUPPORTED.toString());
                 return;
             }
             else {
                 mPromise = promise;
             }
-
+            Log.w(TAG, "init");
             if (!isServiceRunning(BleService.class)) {
+                Log.w(TAG, "init-startService");
                 getReactApplicationContext().startService(new Intent(getReactApplicationContext(), BleService.class));
             }
             Intent intent = new Intent(getReactApplicationContext(), BleService.class);
@@ -315,10 +319,12 @@ public class BleNative extends ReactContextBaseJavaModule {
     @ReactMethod
     public void destroy(boolean stopService) {
         if (stopService) {
+            Log.w(TAG, "destroy-stopService");
             getReactApplicationContext().unbindService(mConnection);
             getReactApplicationContext().stopService(new Intent(getReactApplicationContext(), BleService.class));
         }
         else {
+            Log.w(TAG, "destroy-unbindService");
             getReactApplicationContext().unbindService(mConnection);
         }
     }

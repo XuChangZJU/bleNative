@@ -114,6 +114,7 @@ public class BleService extends Service {
 
     @Override
     public void onDestroy() {
+        Log.d(TAG, "onDestroy");
         // The service is no longer used and is being destroyed
         unregisterReceiver(mBleStateReceiver);
     }
@@ -138,12 +139,24 @@ public class BleService extends Service {
     }
 
     @Override
+    public void onRebind(Intent intent) {
+        Log.w(TAG, "onRebind");
+        if (mBindedCount == 0) {
+            mBindedCount ++;
+        }
+        else {
+            Log.e(TAG, "同时只能绑定一个上层对象");
+        }
+    }
+
+
+    @Override
     public boolean onUnbind(Intent intent) {
         Log.w(TAG, "onUnbind");
         assert (mBindedCount == 1);
         mBindedCount --;
         // disable rebind
-        return super.onUnbind(intent);
+        return true;
     }
 
 
