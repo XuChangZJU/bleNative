@@ -11,11 +11,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": {
-    "name": "Xu Chang",
-    "email": "chinawraith@163.com",
-    "url": "https://github.com/XuChangZJU/"
-  },
   "contributors": [
     {
       "name": "Bi Li yuan",
