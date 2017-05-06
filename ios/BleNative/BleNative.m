@@ -6,9 +6,6 @@
 //  Copyright © 2016年 biliyuan. All rights reserved.
 //
 #import "BleNative.h"
-#import "RCTEventDispatcher.h"
-#import "RCTLog.h"
-#import "RCTConvert.h"
 //JS层监听的事件
 NSString *EVENT_BLE_STATE_CHANGED = @"bleStateChanged";
 NSString *EVENT_BLE_PERIPHERAL_SCANNED = @"blePeripheralScanned";
