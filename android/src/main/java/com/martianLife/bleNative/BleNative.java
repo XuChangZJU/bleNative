@@ -101,7 +101,7 @@ public class BleNative extends ReactContextBaseJavaModule {
 
 
     private Messenger mRemoteBleService;
-    private Promise mPromise;
+    private Promise mPromise = null;
 
     public BleNative(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -137,7 +137,10 @@ public class BleNative extends ReactContextBaseJavaModule {
             WritableMap writableMap = Arguments.createMap();
             switch (action) {
                 case BleService.ACTION_STATE_GOT:
-                    mPromise.resolve(intent.getStringExtra(BleService.EXTRA_STATE));
+                    if (mPromise != null) {
+                        mPromise.resolve(intent.getStringExtra(BleService.EXTRA_STATE));
+                        mPromise = null;
+                    }
                     break;
                 case BleService.ACTION_STATE_CHANGED:
                     writableMap.putString(EVENT_STATE_CHANGE_PARAM_STATE, intent.getStringExtra(BleService.EXTRA_STATE));
@@ -149,7 +152,10 @@ public class BleNative extends ReactContextBaseJavaModule {
                     sendEvent(EVENT_BOND_CHANGE, writableMap);
                     break;
                 case BleService.ACTION_BOND_STATE_GOT:
-                    mPromise.resolve(intent.getBooleanExtra(BleService.EXTRA_STATE, false));
+                    if (mPromise != null) {
+                        mPromise.resolve(intent.getBooleanExtra(BleService.EXTRA_STATE, false));
+                        mPromise = null;
+                    }
                     break;
                 case BleService.ACTION_CONNECTED:
                     writableMap.putString(EVENT_BOND_CHANGE_PARAM_ID, intent.getStringExtra(BleService.EXTRA_ADDRESS));
@@ -263,11 +269,17 @@ public class BleNative extends ReactContextBaseJavaModule {
                 try {
                     mRemoteBleService.send(message);
                 } catch (RemoteException e) {
-                    mPromise.reject(e);
+                    if (mPromise != null) {
+                        mPromise.reject(e);
+                        mPromise = null;
+                    }
                 }
             }
             else {
-                mPromise.resolve(BleState.STATE_BIND_FAILURE.toString());
+                if (mPromise != null) {
+                    mPromise.resolve(BleState.STATE_BIND_FAILURE.toString());
+                    mPromise = null;
+                }
             }
         }
 
