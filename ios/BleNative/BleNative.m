@@ -245,7 +245,7 @@ RCT_EXPORT_METHOD(discoverIncludedServices:(NSDictionary *)param) {
 }
 
 RCT_EXPORT_METHOD(discoverCharacteristics:(NSDictionary *)param) {
-    NSLog(@"%@ ++++++++discoverCharacteristics");
+    
     NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
     NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
     //  NSArray *uuidsArray    = [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
@@ -305,7 +305,7 @@ RCT_EXPORT_METHOD(discoverDescriptors:(NSDictionary *)param) {
 
 //设置notification是异步的,但是没有回调函数
 RCT_EXPORT_METHOD(setCharacteristicNotification:(NSDictionary *)param) {
-    NSLog(@"%@ ++++++++setCharacteristicNotification",param);
+    
     NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
     NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
     NSString *characteristicUuidString = param[PARAM_COMMON_CHARACTERISTIC_UUID];
@@ -346,7 +346,7 @@ RCT_EXPORT_METHOD(setCharacteristicNotification:(NSDictionary *)param) {
 }
 
 RCT_EXPORT_METHOD(readCharacteristic:(NSDictionary *)param) {
-    NSLog(@"%@ ++++++++readCharacteristic", param);
+    
     NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
     NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
     NSString *characteristicUuidString = param[PARAM_COMMON_CHARACTERISTIC_UUID];
@@ -410,7 +410,7 @@ RCT_EXPORT_METHOD(writeCharacteristic:(NSDictionary *)param) {
         CBCharacteristic *characteristic;
         NSArray *characteristics = service.characteristics;
         BOOL characteristicExist = false;
-    
+        
         for(characteristic in characteristics) {
             if ([characteristic.UUID.UUIDString isEqualToString:characteristicUuidString]) {
                 characteristicExist = true;
@@ -418,7 +418,7 @@ RCT_EXPORT_METHOD(writeCharacteristic:(NSDictionary *)param) {
             }
         }
         if (characteristicExist == true) {
-//            [centralPeripheral setNotifyValue:true forCharacteristic:characteristic];
+            //            [centralPeripheral setNotifyValue:true forCharacteristic:characteristic];
             Byte bytes[value.count];
             NSNumber *num;
             for(int i=0;i<value.count;i++){
@@ -441,7 +441,6 @@ RCT_EXPORT_METHOD(writeCharacteristic:(NSDictionary *)param) {
                     [centralPeripheral writeValue:data1 forCharacteristic:characteristic type:writeType];
                     if(writeType == 1 && l == splitArray.count -1){
                         NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-                        //                NSLog(@"%@ ++++++++datacharacteristic", data);
                         [paramDic setValue: centralPeripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
                         [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
                         [paramDic setValue: characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
@@ -495,7 +494,7 @@ RCT_EXPORT_METHOD(writeCharacteristic:(NSDictionary *)param) {
     return [arr copy];
 }
 RCT_EXPORT_METHOD(readDescriptor:(NSDictionary *)param) {
-    NSLog(@"%@ ++++++++readDescriptor", param);
+    
     NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
     NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
     NSString *characteristicUuidString = param[PARAM_COMMON_CHARACTERISTIC_UUID];
@@ -546,7 +545,6 @@ RCT_EXPORT_METHOD(readDescriptor:(NSDictionary *)param) {
 
 
 RCT_EXPORT_METHOD(writeDescriptor:(NSDictionary *)param) {
-    NSLog(@"%@writeDescriptor",param);
     NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
     NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
     NSString *characteristicUuidString = param[PARAM_COMMON_CHARACTERISTIC_UUID];
@@ -753,7 +751,7 @@ RCT_EXPORT_METHOD(writeDescriptor:(NSDictionary *)param) {
     CBCharacteristic *characteristic;
     for (characteristic in characteristics) {
         [peripheral setNotifyValue:YES forCharacteristic:characteristic];
-
+        
         [characteristicObjects addObject:[self constructBleCharacteristicObject:characteristic]];
         if (isAutomaticDiscovering) {
             [peripheral discoverDescriptorsForCharacteristic:characteristic];
@@ -768,7 +766,6 @@ RCT_EXPORT_METHOD(writeDescriptor:(NSDictionary *)param) {
 }
 
 - (void) peripheral:(CBPeripheral *)peripheral didDiscoverDescriptorsForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
-    NSLog(@"%@+++didDiscoverDescriptorsForCharacteristic+",characteristic);
     if (error != nil) {
         [self onBleError:peripheral error:error];
         return ;
@@ -803,9 +800,8 @@ RCT_EXPORT_METHOD(writeDescriptor:(NSDictionary *)param) {
         NSLog(@"%@didWriteValueForCharacteristic",error);
         return ;
     }
-  
+    
     NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-    NSLog(@"%@ didWriteValueForCharacteristic",characteristic);
     
     [paramDic setValue: peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
     [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
@@ -815,13 +811,13 @@ RCT_EXPORT_METHOD(writeDescriptor:(NSDictionary *)param) {
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(nonnull CBCharacteristic *)characteristic error:(nullable NSError *)error {
-    NSLog(@"2222");
+    
     if (error != nil) {
         NSLog(@"%@ didUpdateValueForCharacteristic",error);
         [self onBleError:peripheral error:error];
         return ;
     }
-    NSLog(@"%@ didUpdateValueForCharacteristic",characteristic);
+    
     NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
     [paramDic setValue: peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
     [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
@@ -841,7 +837,7 @@ RCT_EXPORT_METHOD(writeDescriptor:(NSDictionary *)param) {
     [paramDic setValue: peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
     [paramDic setValue: descriptor.characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
     [paramDic setValue: descriptor.characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
-     [paramDic setValue: [self constructBleByteArrayToIntArray:descriptor.value] forKey:COMMON_VALUE];
+    [paramDic setValue: [self constructBleByteArrayToIntArray:descriptor.value] forKey:COMMON_VALUE];
     [paramDic setValue: descriptor.UUID.UUIDString forKey:PARAM_COMMON_DESCRIPTOR_UUID];
     [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_DESCRIPTORS_WRITTEN body:[paramDic copy]];
 }
@@ -852,7 +848,7 @@ RCT_EXPORT_METHOD(writeDescriptor:(NSDictionary *)param) {
         [self onBleError:peripheral error:error];
         return ;
     }
-    NSLog(@"%@didUpdateValueForDescriptor", descriptor);
+    
     NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
     [paramDic setValue: peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
     [paramDic setValue: descriptor.characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
@@ -949,7 +945,7 @@ RCT_EXPORT_METHOD(writeDescriptor:(NSDictionary *)param) {
     [paramDic setValue:peripheral.identifier.UUIDString forKey:COMMON_PERIPHERAL_UUID];
     [paramDic setValue:peripheral.name forKey:PARAM_DEVICE_NAME];
     [paramDic setValue:[serviceObject copy] forKey:COMMON_SERVICES];
-    NSLog(@"%@",paramDic);
+    
     return [paramDic copy];
 }
 
