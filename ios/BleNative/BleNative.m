@@ -81,12 +81,12 @@ NSString *PARAM_IS_AUTOMATIC = @"isAutomaticDiscovering";
 NSString *PARAM_WRITE_CHARACTERISTIC_TYPE = @"type";
 
 enum BleState {
-  STATE_UNSUPPORTED,
-  STATE_UNAUTHORIZED,
-  STATE_OFF,
-  STATE_ON,
-  STATE_RESETTING,
-  STATE_UNKNOWN
+    STATE_UNSUPPORTED,
+    STATE_UNAUTHORIZED,
+    STATE_OFF,
+    STATE_ON,
+    STATE_RESETTING,
+    STATE_UNKNOWN
 };
 
 
@@ -102,7 +102,7 @@ typedef struct {
     BleConstantsConverter *converter;
     NSNumber            *isAutomaticDiscovering;
     NSMutableDictionary *discoverTreeDic;
-  
+    
 }
 
 @end
@@ -144,47 +144,47 @@ RCT_EXPORT_MODULE()
 
 //供JS层调用的方法
 RCT_EXPORT_METHOD(setup) {
-  dispatch_queue_t eventQueue = dispatch_queue_create("com.bly", DISPATCH_QUEUE_SERIAL);
-  dispatch_set_target_queue(eventQueue, dispatch_get_main_queue());
-  centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:eventQueue options:@{}];
+    dispatch_queue_t eventQueue = dispatch_queue_create("com.bly", DISPATCH_QUEUE_SERIAL);
+    dispatch_set_target_queue(eventQueue, dispatch_get_main_queue());
+    centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:eventQueue options:@{}];
 }
 
 RCT_EXPORT_METHOD(startScan:(NSDictionary *)filter) {
-  NSArray *uuidsStringArray;
-  NSMutableArray *uuidsMutableArray = [[NSMutableArray alloc]init];
-  NSString *uuidString;
-  NSMutableDictionary *scanOptions = [NSMutableDictionary dictionaryWithObject:@NO
-                                                                        forKey:CBCentralManagerScanOptionAllowDuplicatesKey];
-  if(filter != nil){
-    uuidsStringArray = filter[PARAM_SCAN_UUIDS];
-    BOOL allowDuplicates = filter[PARAM_SCAN_ALLOWDUPLICATES];
-    if (allowDuplicates  == true) {
-      [scanOptions setValue:@YES forKey:CBCentralManagerScanOptionAllowDuplicatesKey];
+    NSArray *uuidsStringArray;
+    NSMutableArray *uuidsMutableArray = [[NSMutableArray alloc]init];
+    NSString *uuidString;
+    NSMutableDictionary *scanOptions = [NSMutableDictionary dictionaryWithObject:@NO
+                                                                          forKey:CBCentralManagerScanOptionAllowDuplicatesKey];
+    if(filter != nil){
+        uuidsStringArray = filter[PARAM_SCAN_UUIDS];
+        BOOL allowDuplicates = filter[PARAM_SCAN_ALLOWDUPLICATES];
+        if (allowDuplicates  == true) {
+            [scanOptions setValue:@YES forKey:CBCentralManagerScanOptionAllowDuplicatesKey];
+        }
+        for(uuidString in uuidsStringArray){
+            NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:uuidString];
+            [uuidsMutableArray addObject:proximityUUID];
+            
+        }
+        [centralManager scanForPeripheralsWithServices:[uuidsMutableArray copy] options:scanOptions];
+    }else{
+        [centralManager scanForPeripheralsWithServices:nil options:scanOptions];
     }
-    for(uuidString in uuidsStringArray){
-        NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:uuidString];
-        [uuidsMutableArray addObject:proximityUUID];
-    
-    }
-    [centralManager scanForPeripheralsWithServices:[uuidsMutableArray copy] options:scanOptions];
-  }else{
-    [centralManager scanForPeripheralsWithServices:nil options:scanOptions];
-  }
 }
 
 RCT_EXPORT_METHOD(stopScan) {
-  [centralManager stopScan];
+    [centralManager stopScan];
 }
 
 RCT_EXPORT_METHOD(connect:(NSDictionary *)param ) {
-  
-  NSString *peripheralUuidString = param[COMMON_PERIPHERAL_UUID];
-
-  NSDictionary *options = param[COMMON_OPTIONS];
-  isAutomaticDiscovering = options[PARAM_IS_AUTOMATIC];
-
+    
+    NSString *peripheralUuidString = param[COMMON_PERIPHERAL_UUID];
+    
+    NSDictionary *options = param[COMMON_OPTIONS];
+    isAutomaticDiscovering = options[PARAM_IS_AUTOMATIC];
+    
     NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
-    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
+    NSArray *uuidsArray    = [NSArray arrayWithObjects:proximityUUID,nil];
     NSArray *peripherals = [NSArray array];
     @try {
         peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
@@ -195,653 +195,733 @@ RCT_EXPORT_METHOD(connect:(NSDictionary *)param ) {
     @catch (NSException *exception) {
         NSLog(@"%s\n%@", __FUNCTION__, exception);
     }
-
+    
 }
 
 RCT_EXPORT_METHOD(disconnect:(NSDictionary *)param) {
-  NSString *peripheralUuidString = param[COMMON_PERIPHERAL_UUID];
-//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSString *peripheralUuidString = param[COMMON_PERIPHERAL_UUID];
+    //  NSArray *uuidsArray    = [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
     NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
-    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
-  NSArray *peripherals = [NSArray array];
-  peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
-  centralPeripheral = peripherals[0];
-
-  [centralManager cancelPeripheralConnection:centralPeripheral];
+    NSArray *uuidsArray    = [NSArray arrayWithObjects:proximityUUID,nil];
+    NSArray *peripherals = [NSArray array];
+    peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
+    centralPeripheral = peripherals[0];
+    
+    [centralManager cancelPeripheralConnection:centralPeripheral];
 }
 
 RCT_EXPORT_METHOD(discoverServices:(NSDictionary *)param) {
-  NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
-//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
+    //  NSArray *uuidsArray    = [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
     NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
-    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
-  NSArray *peripherals = [NSArray array];
-  peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
-  centralPeripheral = peripherals[0];
-  [centralPeripheral discoverServices: nil];
+    NSArray *uuidsArray    = [NSArray arrayWithObjects:proximityUUID,nil];
+    NSArray *peripherals = [NSArray array];
+    peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
+    centralPeripheral = peripherals[0];
+    [centralPeripheral discoverServices: nil];
 }
 
 RCT_EXPORT_METHOD(discoverIncludedServices:(NSDictionary *)param) {
-  NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
-  NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
-//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
+    NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
+    //  NSArray *uuidsArray    = [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
     NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
-    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
-  NSArray *peripherals = [NSArray array];
-  peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
-  centralPeripheral = peripherals[0];
-  NSArray *services = centralPeripheral.services;
-  CBService *service;
-  BOOL serviceExist = false;
-  for(service in services) {
-    if ([service.UUID.UUIDString isEqualToString:serviceUuidString]) {
-      serviceExist = true;
-      break;
+    NSArray *uuidsArray    = [NSArray arrayWithObjects:proximityUUID,nil];
+    NSArray *peripherals = [NSArray array];
+    peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
+    centralPeripheral = peripherals[0];
+    NSArray *services = centralPeripheral.services;
+    CBService *service;
+    BOOL serviceExist = false;
+    for(service in services) {
+        if ([service.UUID.UUIDString isEqualToString:serviceUuidString]) {
+            serviceExist = true;
+            break;
+        }
     }
-  }
-  if (serviceExist == true) {
-    [centralPeripheral discoverIncludedServices:nil forService:service];
-  }
+    if (serviceExist == true) {
+        [centralPeripheral discoverIncludedServices:nil forService:service];
+    }
 }
 
 RCT_EXPORT_METHOD(discoverCharacteristics:(NSDictionary *)param) {
-  NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
-  NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
-//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSLog(@"%@ ++++++++discoverCharacteristics");
+    NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
+    NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
+    //  NSArray *uuidsArray    = [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
     NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
-    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
-  NSArray *peripherals = [NSArray array];
-  peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
-  centralPeripheral = peripherals[0];
-  NSArray *services = centralPeripheral.services;
-  CBService *service;
-  BOOL serviceExist = false;
-  for(service in services) {
-    if ([service.UUID.UUIDString isEqualToString:serviceUuidString]) {
-      serviceExist = true;
-      break;
+    NSArray *uuidsArray    = [NSArray arrayWithObjects:proximityUUID,nil];
+    NSArray *peripherals = [NSArray array];
+    peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
+    centralPeripheral = peripherals[0];
+    NSArray *services = centralPeripheral.services;
+    CBService *service;
+    BOOL serviceExist = false;
+    for(service in services) {
+        if ([service.UUID.UUIDString isEqualToString:serviceUuidString]) {
+            serviceExist = true;
+            break;
+        }
     }
-  }
-  if (serviceExist == true) {
-    [centralPeripheral discoverCharacteristics:nil forService:service];
-  }
+    if (serviceExist == true) {
+        [centralPeripheral discoverCharacteristics:nil forService:service];
+    }
 }
 
 RCT_EXPORT_METHOD(discoverDescriptors:(NSDictionary *)param) {
-  NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
-  NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
-  NSString *characteristicUuidString  = param[PARAM_COMMON_CHARACTERISTIC_UUID];
-//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
+    NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
+    NSString *characteristicUuidString  = param[PARAM_COMMON_CHARACTERISTIC_UUID];
+    //  NSArray *uuidsArray    = [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
     NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
-    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
-  NSArray *peripherals = [NSArray array];
-  peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
-  centralPeripheral = peripherals[0];
-  NSArray *services = centralPeripheral.services;
-  CBService *service;
-  BOOL serviceExist = false;
-  for(service in services) {
-    if ([service.UUID.UUIDString isEqualToString:serviceUuidString]) {
-      serviceExist = true;
-      break;
+    NSArray *uuidsArray    = [NSArray arrayWithObjects:proximityUUID,nil];
+    NSArray *peripherals = [NSArray array];
+    peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
+    centralPeripheral = peripherals[0];
+    NSArray *services = centralPeripheral.services;
+    CBService *service;
+    BOOL serviceExist = false;
+    for(service in services) {
+        if ([service.UUID.UUIDString isEqualToString:serviceUuidString]) {
+            serviceExist = true;
+            break;
+        }
     }
-  }
-  if (serviceExist == true) {
-    NSArray *characteristics = service.characteristics;
-    BOOL characteristicExist = false;
-    CBCharacteristic *characteristic;
-    for(characteristic in characteristics) {
-      if([characteristic.UUID.UUIDString isEqualToString:characteristicUuidString]){
-        characteristicExist = true;
-        break;
-      }
+    if (serviceExist == true) {
+        NSArray *characteristics = service.characteristics;
+        BOOL characteristicExist = false;
+        CBCharacteristic *characteristic;
+        for(characteristic in characteristics) {
+            if([characteristic.UUID.UUIDString isEqualToString:characteristicUuidString]){
+                characteristicExist = true;
+                break;
+            }
+        }
+        if (characteristicExist == true) {
+            [centralPeripheral discoverDescriptorsForCharacteristic:characteristic];
+        }
     }
-    if (characteristicExist == true) {
-      [centralPeripheral discoverDescriptorsForCharacteristic:characteristic];
-    }
-  }
 }
 
 //设置notification是异步的,但是没有回调函数
 RCT_EXPORT_METHOD(setCharacteristicNotification:(NSDictionary *)param) {
-  NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
-  NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
-  NSString *characteristicUuidString = param[PARAM_COMMON_CHARACTERISTIC_UUID];
-  NSDictionary *options = param[COMMON_OPTIONS];
-  NSNumber *enable = options[PARAM_SET_CHARACTERISTIC_NOTIFICATION_ENABLE];
-
-//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSLog(@"%@ ++++++++setCharacteristicNotification",param);
+    NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
+    NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
+    NSString *characteristicUuidString = param[PARAM_COMMON_CHARACTERISTIC_UUID];
+    NSDictionary *options = param[COMMON_OPTIONS];
+    NSNumber *enable = options[PARAM_SET_CHARACTERISTIC_NOTIFICATION_ENABLE];
+    
+    //  NSArray *uuidsArray    = [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
     NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
-    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
-  NSArray *peripherals = [NSArray array];
-  peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
-  centralPeripheral= peripherals[0];
-  NSArray *services = centralPeripheral.services;
-  CBService *service;
-  BOOL serviceExist = false;
-  for(service in services) {
-    if ([service.UUID.UUIDString isEqualToString:serviceUuidString]) {
-      serviceExist = true;
-      break;
+    NSArray *uuidsArray    = [NSArray arrayWithObjects:proximityUUID,nil];
+    NSArray *peripherals = [NSArray array];
+    peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
+    centralPeripheral= peripherals[0];
+    NSArray *services = centralPeripheral.services;
+    CBService *service;
+    BOOL serviceExist = false;
+    for(service in services) {
+        if ([service.UUID.UUIDString isEqualToString:serviceUuidString]) {
+            serviceExist = true;
+            break;
+        }
     }
-  }
-  if (serviceExist == true) {
-    CBCharacteristic *characteristic;
-    NSArray *characteristics = service.characteristics;
-    BOOL characteristicExist = false;
-    for(characteristic in characteristics) {
-      if ([characteristic.UUID.UUIDString isEqualToString:characteristicUuidString]) {
-        characteristicExist = true;
-        break;
-      }
+    if (serviceExist == true) {
+        CBCharacteristic *characteristic;
+        NSArray *characteristics = service.characteristics;
+        BOOL characteristicExist = false;
+        for(characteristic in characteristics) {
+            if ([characteristic.UUID.UUIDString isEqualToString:characteristicUuidString]) {
+                characteristicExist = true;
+                break;
+            }
+        }
+        if (characteristicExist == true) {
+            [centralPeripheral setNotifyValue:enable forCharacteristic:characteristic];
+        }
+    } else {
+        RCTLogInfo(@"没有该service");
     }
-    if (characteristicExist == true) {
-      [centralPeripheral setNotifyValue:enable forCharacteristic:characteristic];
-    }
-  } else {
-    RCTLogInfo(@"没有该service");
-  }
 }
 
 RCT_EXPORT_METHOD(readCharacteristic:(NSDictionary *)param) {
-  NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
-  NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
-  NSString *characteristicUuidString = param[PARAM_COMMON_CHARACTERISTIC_UUID];
-
-//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSLog(@"%@ ++++++++readCharacteristic", param);
+    NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
+    NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
+    NSString *characteristicUuidString = param[PARAM_COMMON_CHARACTERISTIC_UUID];
+    
+    //  NSArray *uuidsArray    = [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
     NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
-    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
-  NSArray *peripherals = [NSArray array];
-  peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
-  centralPeripheral = peripherals[0];
-
-  NSArray *services = centralPeripheral.services;
-  CBService *service;
-  BOOL serviceExist = false;
-  for(service in services) {
-    if ([service.UUID.UUIDString isEqualToString:serviceUuidString]) {
-      serviceExist = true;
-      break;
+    NSArray *uuidsArray    = [NSArray arrayWithObjects:proximityUUID,nil];
+    NSArray *peripherals = [NSArray array];
+    peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
+    centralPeripheral = peripherals[0];
+    
+    NSArray *services = centralPeripheral.services;
+    CBService *service;
+    BOOL serviceExist = false;
+    for(service in services) {
+        if ([service.UUID.UUIDString isEqualToString:serviceUuidString]) {
+            serviceExist = true;
+            break;
+        }
     }
-  }
-  if (serviceExist == true) {
-    CBCharacteristic *characteristic;
-    NSArray *characteristics = service.characteristics;
-    BOOL characteristicExist = false;
-    for(characteristic in characteristics) {
-      if ([characteristic.UUID.UUIDString isEqualToString:characteristicUuidString]) {
-        characteristicExist = true;
-        break;
-      }
+    if (serviceExist == true) {
+        CBCharacteristic *characteristic;
+        NSArray *characteristics = service.characteristics;
+        BOOL characteristicExist = false;
+        for(characteristic in characteristics) {
+            if ([characteristic.UUID.UUIDString isEqualToString:characteristicUuidString]) {
+                characteristicExist = true;
+                break;
+            }
+        }
+        if (characteristicExist == true) {
+            [centralPeripheral readValueForCharacteristic:characteristic];
+        }
     }
-    if (characteristicExist == true) {
-      [centralPeripheral readValueForCharacteristic:characteristic];
-    }
-  }
 }
 
 RCT_EXPORT_METHOD(writeCharacteristic:(NSDictionary *)param) {
-  NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
-  NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
-  NSString *characteristicUuidString = param[PARAM_COMMON_CHARACTERISTIC_UUID];
-  NSArray *value = param[PARAM_COMMON_VALUE];
-  NSDictionary *options = param[COMMON_OPTIONS];
-  NSNumber *type = options[PARAM_WRITE_CHARACTERISTIC_TYPE];
-  NSInteger writeType = [type integerValue];
-
-//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
+    NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
+    NSString *characteristicUuidString = param[PARAM_COMMON_CHARACTERISTIC_UUID];
+    NSArray *value = param[PARAM_COMMON_VALUE];
+    NSDictionary *options = param[COMMON_OPTIONS];
+    
+    NSNumber *type = options[PARAM_WRITE_CHARACTERISTIC_TYPE];
+    NSInteger writeType = [type integerValue];
     NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
-    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
-  NSArray *peripherals = [NSArray array];
-  peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
-  centralPeripheral = peripherals[0];
-  NSArray *services = centralPeripheral.services;
-  CBService *service;
-  BOOL serviceExist = false;
-  for(service in services) {
-    if ([service.UUID.UUIDString isEqualToString:serviceUuidString]) {
-      serviceExist = true;
-      break;
+    NSArray *uuidsArray    = [NSArray arrayWithObjects:proximityUUID,nil];
+    NSArray *peripherals = [NSArray array];
+    peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
+    centralPeripheral = peripherals[0];
+    NSArray *services = centralPeripheral.services;
+    CBService *service;
+    BOOL serviceExist = false;
+    for(service in services) {
+        if ([service.UUID.UUIDString isEqualToString:serviceUuidString]) {
+            serviceExist = true;
+            break;
+        }
     }
-  }
-  if (serviceExist == true) {
-    CBCharacteristic *characteristic;
-    NSArray *characteristics = service.characteristics;
-    BOOL characteristicExist = false;
-    for(characteristic in characteristics) {
-      if ([characteristic.UUID.UUIDString isEqualToString:characteristicUuidString]) {
-        characteristicExist = true;
-        break;
-      }
+    if (serviceExist == true) {
+        CBCharacteristic *characteristic;
+        NSArray *characteristics = service.characteristics;
+        BOOL characteristicExist = false;
+    
+        for(characteristic in characteristics) {
+            if ([characteristic.UUID.UUIDString isEqualToString:characteristicUuidString]) {
+                characteristicExist = true;
+                break;
+            }
+        }
+        if (characteristicExist == true) {
+//            [centralPeripheral setNotifyValue:true forCharacteristic:characteristic];
+            Byte bytes[value.count];
+            NSNumber *num;
+            for(int i=0;i<value.count;i++){
+                num = value[i];
+                bytes[i] = (Byte) [num intValue];
+            }
+            NSData *data = [[NSData alloc] initWithBytes:bytes length:value.count];
+            if(value.count > 20){
+                NSArray *splitArray = [self splitArray:value withSubSize:20];
+                NSArray *temp20lengthArr;
+                for (int l=0;l<splitArray.count;l++){
+                    temp20lengthArr=splitArray[l];
+                    Byte bytes[temp20lengthArr.count];
+                    NSNumber *num;
+                    for(int i=0;i<temp20lengthArr.count;i++){
+                        num = temp20lengthArr[i];
+                        bytes[i] = (Byte) [num intValue];
+                    }
+                    NSData *data1 = [[NSData alloc] initWithBytes:bytes length:temp20lengthArr.count];
+                    [centralPeripheral writeValue:data1 forCharacteristic:characteristic type:writeType];
+                    if(writeType == 1 && l == splitArray.count -1){
+                        NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+                        //                NSLog(@"%@ ++++++++datacharacteristic", data);
+                        [paramDic setValue: centralPeripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
+                        [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
+                        [paramDic setValue: characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
+                        [paramDic setValue: [self constructBleByteArrayToIntArray:data] forKey:COMMON_VALUE];
+                        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_CHARACTERISTICS_WRITTEN body:[paramDic copy]];
+                    }
+                }
+                
+            }
+            else {
+                [centralPeripheral writeValue:data forCharacteristic:characteristic type:writeType];
+                if(writeType == 1){
+                    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+                    //                NSLog(@"%@ ++++++++datacharacteristic", data);
+                    [paramDic setValue: centralPeripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
+                    [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
+                    [paramDic setValue: characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
+                    [paramDic setValue: [self constructBleByteArrayToIntArray:data] forKey:COMMON_VALUE];
+                    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_CHARACTERISTICS_WRITTEN body:[paramDic copy]];
+                }
+            }
+        }
     }
-    if (characteristicExist == true) {
-      Byte bytes[value.count];
-      NSNumber *num;
-      for(int i=0;i<value.count;i++){
-        num = value[i];
-        bytes[i] = (Byte) [num intValue];
-      }
-      NSData *data = [[NSData alloc] initWithBytes:bytes length:value.count];
-      [centralPeripheral writeValue:data forCharacteristic:characteristic type:writeType];
-
-    }
-  }
 }
 
-RCT_EXPORT_METHOD(readDescriptor:(NSDictionary *)param) {
-  NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
-  NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
-  NSString *characteristicUuidString = param[PARAM_COMMON_CHARACTERISTIC_UUID];
-  NSString *descriptorUuidString = param[PARAM_COMMON_DESCRIPTOR_UUID];
-
-//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
-    NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
-    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
-  NSArray *peripherals = [NSArray array];
-  peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
-  centralPeripheral = peripherals[0];
-
-  NSArray *services = centralPeripheral.services;
-  CBService *service;
-  BOOL serviceExist = false;
-  for(service in services) {
-    if ([service.UUID.UUIDString isEqualToString:serviceUuidString]) {
-      serviceExist = true;
-      break;
-    }
-  }
-  if (serviceExist == true) {
-    CBCharacteristic *characteristic;
-    NSArray *characteristics = service.characteristics;
-    BOOL characteristicExist = false;
-    for(characteristic in characteristics) {
-      if ([characteristic.UUID.UUIDString isEqualToString:characteristicUuidString]) {
-        characteristicExist = true;
-        break;
-      }
-    }
-    if (characteristicExist == true) {
-      CBDescriptor *descriptor;
-      NSArray *descriptors = characteristic.descriptors;
-      BOOL descriptorExist = false;
-      for(descriptor in descriptors){
-        if ([descriptor.UUID.UUIDString isEqualToString:descriptorUuidString]) {
-          descriptorExist = true;
-          break;
+- (NSArray *)splitArray: (NSArray *)array withSubSize : (int)subSize{
+    //  数组将被拆分成指定长度数组的个数
+    unsigned long count = array.count % subSize == 0 ? (array.count / subSize) : (array.count / subSize + 1);
+    //  用来保存指定长度数组的可变数组对象
+    NSMutableArray *arr = [[NSMutableArray alloc] init];
+    
+    //利用总个数进行循环，将指定长度的元素加入数组
+    for (int i = 0; i < count; i ++) {
+        //数组下标
+        int index = i * subSize;
+        //保存拆分的固定长度的数组元素的可变数组
+        NSMutableArray *arr1 = [[NSMutableArray alloc] init];
+        //移除子数组的所有元素
+        [arr1 removeAllObjects];
+        
+        int j = index;
+        //将数组下标乘以1、2、3，得到拆分时数组的最大下标值，但最大不能超过数组的总大小
+        while (j < subSize*(i + 1) && j < array.count) {
+            [arr1 addObject:[array objectAtIndex:j]];
+            j += 1;
         }
-      }
-      if (descriptorExist == true) {
-        [centralPeripheral readValueForDescriptor:descriptor];
-      }
+        //将子数组添加到保存子数组的数组中
+        [arr addObject:[arr1 copy]];
     }
-  }
+    
+    return [arr copy];
+}
+RCT_EXPORT_METHOD(readDescriptor:(NSDictionary *)param) {
+    NSLog(@"%@ ++++++++readDescriptor", param);
+    NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
+    NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
+    NSString *characteristicUuidString = param[PARAM_COMMON_CHARACTERISTIC_UUID];
+    NSString *descriptorUuidString = param[PARAM_COMMON_DESCRIPTOR_UUID];
+    
+    //  NSArray *uuidsArray    = [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
+    NSArray *uuidsArray    = [NSArray arrayWithObjects:proximityUUID,nil];
+    NSArray *peripherals = [NSArray array];
+    peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
+    centralPeripheral = peripherals[0];
+    
+    NSArray *services = centralPeripheral.services;
+    CBService *service;
+    BOOL serviceExist = false;
+    for(service in services) {
+        if ([service.UUID.UUIDString isEqualToString:serviceUuidString]) {
+            serviceExist = true;
+            break;
+        }
+    }
+    if (serviceExist == true) {
+        CBCharacteristic *characteristic;
+        NSArray *characteristics = service.characteristics;
+        BOOL characteristicExist = false;
+        for(characteristic in characteristics) {
+            if ([characteristic.UUID.UUIDString isEqualToString:characteristicUuidString]) {
+                characteristicExist = true;
+                break;
+            }
+        }
+        if (characteristicExist == true) {
+            CBDescriptor *descriptor;
+            NSArray *descriptors = characteristic.descriptors;
+            BOOL descriptorExist = false;
+            for(descriptor in descriptors){
+                if ([descriptor.UUID.UUIDString isEqualToString:descriptorUuidString]) {
+                    descriptorExist = true;
+                    break;
+                }
+            }
+            if (descriptorExist == true) {
+                [centralPeripheral readValueForDescriptor:descriptor];
+            }
+        }
+    }
 }
 
 
 RCT_EXPORT_METHOD(writeDescriptor:(NSDictionary *)param) {
-  NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
-  NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
-  NSString *characteristicUuidString = param[PARAM_COMMON_CHARACTERISTIC_UUID];
-  NSString *descriptorUuidString = param[PARAM_COMMON_DESCRIPTOR_UUID];
-  NSArray *value = param[PARAM_COMMON_VALUE];
-
-//  NSArray *uuidsArray	= [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
+    NSLog(@"%@writeDescriptor",param);
+    NSString *peripheralUuidString = param[PARAM_COMMON_PERIPHERAL_UUID];
+    NSString *serviceUuidString = param[PARAM_COMMON_SERVICE_UUID];
+    NSString *characteristicUuidString = param[PARAM_COMMON_CHARACTERISTIC_UUID];
+    NSString *descriptorUuidString = param[PARAM_COMMON_DESCRIPTOR_UUID];
+    NSArray *value = param[PARAM_COMMON_VALUE];
+    
+    //  NSArray *uuidsArray    = [NSArray arrayWithObjects:[CBUUID UUIDWithString:peripheralUuidString], nil];
     NSUUID *proximityUUID = [[NSUUID alloc] initWithUUIDString:peripheralUuidString];
-    NSArray *uuidsArray	= [NSArray arrayWithObjects:proximityUUID,nil];
-  NSArray *peripherals = [NSArray array];
-  peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
-  centralPeripheral = peripherals[0];
-  
-  NSArray *services = centralPeripheral.services;
-  CBService *service;
-  BOOL serviceExist = false;
-  for(service in services) {
-    if ([service.UUID.UUIDString isEqualToString:serviceUuidString]) {
-      serviceExist = true;
-      break;
-    }
-  }
-  if (serviceExist == true) {
-    CBCharacteristic *characteristic;
-    NSArray *characteristics = service.characteristics;
-    BOOL characteristicExist = false;
-    for(characteristic in characteristics) {
-      if ([characteristic.UUID.UUIDString isEqualToString:characteristicUuidString]) {
-        characteristicExist = true;
-        break;
-      }
-    }
-    if (characteristicExist == true) {
-      CBDescriptor *descriptor;
-      NSArray *descriptors = characteristic.descriptors;
-      BOOL descriptorExist = false;
-      for(descriptor in descriptors){
-        if ([descriptor.UUID.UUIDString isEqualToString:descriptorUuidString]) {
-          descriptorExist = true;
-          break;
+    NSArray *uuidsArray    = [NSArray arrayWithObjects:proximityUUID,nil];
+    NSArray *peripherals = [NSArray array];
+    peripherals = [centralManager retrievePeripheralsWithIdentifiers:uuidsArray];
+    centralPeripheral = peripherals[0];
+    
+    NSArray *services = centralPeripheral.services;
+    CBService *service;
+    BOOL serviceExist = false;
+    for(service in services) {
+        if ([service.UUID.UUIDString isEqualToString:serviceUuidString]) {
+            serviceExist = true;
+            break;
         }
-      }
-      if (descriptorExist == true) {
-        Byte bytes[value.count];
-        NSNumber *num;
-        for(int i=0;i<value.count;i++){
-          num = value[i];
-          bytes[i] = (Byte) [num intValue];
-        }
-        NSData *data = [[NSData alloc] initWithBytes:bytes length:value.count];
-        [centralPeripheral writeValue:data forDescriptor:descriptor];
-      }
     }
-  }
+    if (serviceExist == true) {
+        CBCharacteristic *characteristic;
+        NSArray *characteristics = service.characteristics;
+        BOOL characteristicExist = false;
+        for(characteristic in characteristics) {
+            if ([characteristic.UUID.UUIDString isEqualToString:characteristicUuidString]) {
+                characteristicExist = true;
+                break;
+            }
+        }
+        if (characteristicExist == true) {
+            CBDescriptor *descriptor;
+            NSArray *descriptors = characteristic.descriptors;
+            BOOL descriptorExist = false;
+            for(descriptor in descriptors){
+                if ([descriptor.UUID.UUIDString isEqualToString:descriptorUuidString]) {
+                    descriptorExist = true;
+                    break;
+                }
+            }
+            if (descriptorExist == true) {
+                Byte bytes[value.count];
+                NSNumber *num;
+                for(int i=0;i<value.count;i++){
+                    num = value[i];
+                    bytes[i] = (Byte) [num intValue];
+                }
+                NSData *data = [[NSData alloc] initWithBytes:bytes length:value.count];
+                [centralPeripheral writeValue:data forDescriptor:descriptor];
+            }
+        }
+    }
 }
 
 
 
 /****************************************************************************/
-/*								蓝牙回调函数                                  */
+/*                                蓝牙回调函数                                  */
 /****************************************************************************/
 
 - (void) centralManagerDidUpdateState:(CBCentralManager *)central {
-  NSMutableDictionary * paramDic = [[NSMutableDictionary alloc]init];
-  [paramDic setValue:[self NSStringForCBCentralManagerState:[central state]] forKey:PARAM_STATE];
-  [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_STATE_CHANGED body:[paramDic copy]];
+    NSMutableDictionary * paramDic = [[NSMutableDictionary alloc]init];
+    [paramDic setValue:[self NSStringForCBCentralManagerState:[central state]] forKey:PARAM_STATE];
+    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_STATE_CHANGED body:[paramDic copy]];
 }
 
 - (NSString *) NSStringForCBCentralManagerState:(CBCentralManagerState)state {
-  int stateInt;
-  switch (state) {
-    case CBCentralManagerStateResetting:
-      stateInt = STATE_RESETTING;
-      break;
-    case CBCentralManagerStateUnsupported:
-      stateInt = STATE_UNSUPPORTED;
-      break;
-    case CBCentralManagerStateUnauthorized:
-      stateInt = STATE_UNAUTHORIZED;
-      break;
-    case CBCentralManagerStatePoweredOff:
-      stateInt = STATE_OFF;
-      break;
-    case CBCentralManagerStatePoweredOn:
-      stateInt = STATE_ON;
-      break;
-    case CBCentralManagerStateUnknown:
-    default:
-      stateInt = STATE_UNKNOWN;
-  }
-  return [NSString stringWithFormat:@"%d",stateInt];
+    int stateInt;
+    switch (state) {
+        case CBCentralManagerStateResetting:
+            stateInt = STATE_RESETTING;
+            break;
+        case CBCentralManagerStateUnsupported:
+            stateInt = STATE_UNSUPPORTED;
+            break;
+        case CBCentralManagerStateUnauthorized:
+            stateInt = STATE_UNAUTHORIZED;
+            break;
+        case CBCentralManagerStatePoweredOff:
+            stateInt = STATE_OFF;
+            break;
+        case CBCentralManagerStatePoweredOn:
+            stateInt = STATE_ON;
+            break;
+        case CBCentralManagerStateUnknown:
+        default:
+            stateInt = STATE_UNKNOWN;
+    }
+    return [NSString stringWithFormat:@"%d",stateInt];
 }
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral
      advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI {
-  NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-  [paramDic setValue:peripheral.identifier.UUIDString forKey:COMMON_PERIPHERAL_UUID];
-  [paramDic setValue:peripheral.name forKey:PARAM_DEVICE_NAME];
-  [paramDic setValue:RSSI forKey:PARAM_RSSI];
-  [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_PERIPHERAL_SCANNED body:[paramDic copy]];
+    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+    [paramDic setValue:peripheral.identifier.UUIDString forKey:COMMON_PERIPHERAL_UUID];
+    [paramDic setValue:peripheral.name forKey:PARAM_DEVICE_NAME];
+    [paramDic setValue:RSSI forKey:PARAM_RSSI];
+    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_PERIPHERAL_SCANNED body:[paramDic copy]];
 }
 
 - (void) centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral {
-  if (isAutomaticDiscovering) {
-    [peripheral discoverServices:nil];
-  }
-  NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-  [paramDic setValue:peripheral.identifier.UUIDString forKey:COMMON_PERIPHERAL_UUID];
-  [paramDic setValue:peripheral.name forKey:PARAM_DEVICE_NAME];
-  [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_PERIPHERAL_CONNECTED body:[paramDic copy]];
+    if (isAutomaticDiscovering) {
+        [peripheral discoverServices:nil];
+    }
+    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+    [paramDic setValue:peripheral.identifier.UUIDString forKey:COMMON_PERIPHERAL_UUID];
+    [paramDic setValue:peripheral.name forKey:PARAM_DEVICE_NAME];
+    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_PERIPHERAL_CONNECTED body:[paramDic copy]];
 }
 
 - (void) centralManager:(CBCentralManager *)central didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error {
-  NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-  [paramDic setValue:peripheral.identifier.UUIDString forKey:COMMON_PERIPHERAL_UUID];
-  [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_PERIPHERAL_FAIL_TO_CONNECT body:[paramDic copy]];
-  [self onBleError:peripheral error:error];
+    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+    [paramDic setValue:peripheral.identifier.UUIDString forKey:COMMON_PERIPHERAL_UUID];
+    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_PERIPHERAL_FAIL_TO_CONNECT body:[paramDic copy]];
+    [self onBleError:peripheral error:error];
 }
 
 - (void) centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error {
-  NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-  [paramDic setValue:peripheral.identifier.UUIDString forKey:COMMON_PERIPHERAL_UUID];
-  [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_PERIPHERAL_DISCONNECTED body:[paramDic copy]];
+    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+    [paramDic setValue:peripheral.identifier.UUIDString forKey:COMMON_PERIPHERAL_UUID];
+    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_PERIPHERAL_DISCONNECTED body:[paramDic copy]];
 }
 
 - (void) peripheral:(CBPeripheral *)peripheral didDiscoverServices:(NSError *)error {
-  if (error != nil) {
-    [self onBleError:peripheral error:error];
-    return ;
-  }
-  NSArray *services = [peripheral services];
-  //TODO:当services为空的情况需要测试
-  if (!services || ![services count]) {
-      [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_FINISH_DISCOVER body:[self constructTotalInformation:peripheral]];
-  } else {
-      //这种写法有问题吗？
-      Pair pair;
-      pair.total = (int)[services count];
-      pair.count = 0;
-      NSValue *pairValue = [NSValue valueWithBytes:&pair objCType:@encode(Pair)];
-      [discoverTreeDic setValue:pairValue forKey:@"peripheral"];
-      
-  }
-  NSMutableArray *serviceObjects = [[NSMutableArray alloc]init];
-  CBService *service;
-  for(service in services){
-    [serviceObjects addObject:[self constructBleServiceObject:service]];
-    if (isAutomaticDiscovering) {
-      [peripheral discoverCharacteristics:nil forService:service];
+    if (error != nil) {
+        [self onBleError:peripheral error:error];
+        return ;
     }
-  }
-  NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-  [paramDic setValue:peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
-  [paramDic setValue:[serviceObjects copy] forKey:COMMON_SERVICES];
-  [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_SERVICES_DISCOVERED body:[paramDic copy]];
+    NSArray *services = [peripheral services];
+    //TODO:当services为空的情况需要测试
+    if (!services || ![services count]) {
+        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_FINISH_DISCOVER body:[self constructTotalInformation:peripheral]];
+    } else {
+        //这种写法有问题吗？
+        Pair pair;
+        pair.total = (int)[services count];
+        pair.count = 0;
+        NSValue *pairValue = [NSValue valueWithBytes:&pair objCType:@encode(Pair)];
+        [discoverTreeDic setValue:pairValue forKey:@"peripheral"];
+        
+    }
+    NSMutableArray *serviceObjects = [[NSMutableArray alloc]init];
+    CBService *service;
+    for(service in services){
+        [serviceObjects addObject:[self constructBleServiceObject:service]];
+        if (isAutomaticDiscovering) {
+            [peripheral discoverCharacteristics:nil forService:service];
+        }
+    }
+    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+    [paramDic setValue:peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
+    [paramDic setValue:[serviceObjects copy] forKey:COMMON_SERVICES];
+    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_SERVICES_DISCOVERED body:[paramDic copy]];
 }
 
 - (void) peripheral:(CBPeripheral *)peripheral didDiscoverIncludedServicesForService:(nonnull CBService *)service error:(nullable NSError *)error {
-  CBService *includedService;
-  NSArray *includedServices = service.includedServices;
-  //TODO:includedServices为空需要被测试
-  if (!includedServices || ![includedServices count]) {
-      //不用做
-  } else {
-      //需要测试
-      [self changePairKey:@"peripheral" addTotal:(int)[includedServices count] addCount:0];
-  }
-  NSMutableArray *serviceObjects = [[NSMutableArray alloc]init];
-  for(includedService in includedServices){
-    [serviceObjects addObject:[self constructBleServiceObject:includedService]];
-  }
-  NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-  [paramDic setValue:peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
-  [paramDic setValue:service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
-  [paramDic setValue:[serviceObjects copy] forKey:COMMON_SERVICES];
-  [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_INCLUDED_SERVICES_DISCOVERED body:[paramDic copy]];
+    CBService *includedService;
+    NSArray *includedServices = service.includedServices;
+    //TODO:includedServices为空需要被测试
+    if (!includedServices || ![includedServices count]) {
+        //不用做
+    } else {
+        //需要测试
+        [self changePairKey:@"peripheral" addTotal:(int)[includedServices count] addCount:0];
+    }
+    NSMutableArray *serviceObjects = [[NSMutableArray alloc]init];
+    for(includedService in includedServices){
+        [serviceObjects addObject:[self constructBleServiceObject:includedService]];
+    }
+    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+    [paramDic setValue:peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
+    [paramDic setValue:service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
+    [paramDic setValue:[serviceObjects copy] forKey:COMMON_SERVICES];
+    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_INCLUDED_SERVICES_DISCOVERED body:[paramDic copy]];
 }
 
 - (void) peripheral:(CBPeripheral *)peripheral didDiscoverCharacteristicsForService:(CBService *)service error:(NSError *)error {
-  //TODO:error时的情况需要测试
-  if (error != nil) {
-    [self onBleError:peripheral error:error];
-    return ;
-  }
-  NSArray *characteristics = [service characteristics];
-  //TODO:当characteristics为空的情况需要测试
-  if (!characteristics || ![characteristics count]) {
-      //这里改变了count进行判断
-      BOOL isPeripheralCompleted = [self changePairKey:@"peripheral" addTotal:0 addCount:1];
-      if(isPeripheralCompleted){
-          [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_FINISH_DISCOVER body:[self constructTotalInformation:peripheral]];
-      }
-  } else {
-      //需要测试
-      Pair pair;
-      pair.total = (int)[characteristics count];
-      pair.count = 0;
-      //这里有疑问是不是使用
-      //NSValue *pairValue = [NSValue value:&pair withObjCType:@encode(Pair)];
-      NSValue *pairValue = [NSValue valueWithBytes:&pair objCType:@encode(Pair)];
-      [discoverTreeDic setValue:pairValue forKey:service.UUID.UUIDString];
-  }
-  NSMutableArray *characteristicObjects = [[NSMutableArray alloc]init];
-  CBCharacteristic *characteristic;
-  for (characteristic in characteristics) {
-    [characteristicObjects addObject:[self constructBleCharacteristicObject:characteristic]];
-    if (isAutomaticDiscovering) {
-      [peripheral discoverDescriptorsForCharacteristic:characteristic];
+    //TODO:error时的情况需要测试
+    if (error != nil) {
+        [self onBleError:peripheral error:error];
+        return ;
     }
-  }
-  
-  NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-  [paramDic setValue: service.peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
-  [paramDic setValue: service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
-  [paramDic setValue: [characteristicObjects copy] forKey:COMMON_CHARACTERISTICS];
-  [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_CHARACTERISTICS_DISCOVERED body:[paramDic copy]];
+    NSArray *characteristics = [service characteristics];
+    //TODO:当characteristics为空的情况需要测试
+    if (!characteristics || ![characteristics count]) {
+        //这里改变了count进行判断
+        BOOL isPeripheralCompleted = [self changePairKey:@"peripheral" addTotal:0 addCount:1];
+        if(isPeripheralCompleted){
+            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_FINISH_DISCOVER body:[self constructTotalInformation:peripheral]];
+        }
+    } else {
+        //需要测试
+        Pair pair;
+        pair.total = (int)[characteristics count];
+        pair.count = 0;
+        //这里有疑问是不是使用
+        //NSValue *pairValue = [NSValue value:&pair withObjCType:@encode(Pair)];
+        NSValue *pairValue = [NSValue valueWithBytes:&pair objCType:@encode(Pair)];
+        [discoverTreeDic setValue:pairValue forKey:service.UUID.UUIDString];
+    }
+    NSMutableArray *characteristicObjects = [[NSMutableArray alloc]init];
+    CBCharacteristic *characteristic;
+    for (characteristic in characteristics) {
+        [peripheral setNotifyValue:YES forCharacteristic:characteristic];
+
+        [characteristicObjects addObject:[self constructBleCharacteristicObject:characteristic]];
+        if (isAutomaticDiscovering) {
+            [peripheral discoverDescriptorsForCharacteristic:characteristic];
+        }
+    }
+    
+    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+    [paramDic setValue: service.peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
+    [paramDic setValue: service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
+    [paramDic setValue: [characteristicObjects copy] forKey:COMMON_CHARACTERISTICS];
+    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_CHARACTERISTICS_DISCOVERED body:[paramDic copy]];
 }
 
 - (void) peripheral:(CBPeripheral *)peripheral didDiscoverDescriptorsForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
-  
-  if (error != nil) {
-    [self onBleError:peripheral error:error];
-    return ;
-  }
-  NSArray *descriptors = [characteristic descriptors];
-  //不管有没有descriptor，其父亲service都要加1
-  BOOL isServiceCompleted = [self changePairKey:characteristic.service.UUID.UUIDString addTotal:0 addCount:1];
-  if(isServiceCompleted){
-      BOOL isPeripheralCompleted = [self changePairKey:@"peripheral" addTotal:0 addCount:1];
-      if (isPeripheralCompleted) {
-          [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_FINISH_DISCOVER body:[self constructTotalInformation:peripheral]];
-      }
-  }
-  NSMutableArray *descriptorObjects = [[NSMutableArray alloc]init];
-  CBDescriptor *descriptor;
-  for (descriptor in descriptors) {
-    [descriptorObjects addObject:[self constructBleDescriptorObject:descriptor]];
-  }
-  NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-  [paramDic setValue: characteristic.service.peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
-  [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
-  [paramDic setValue: characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
-  [paramDic setValue: [descriptorObjects copy] forKey:COMMON_DESCRIPTORS];
-  [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_DESCRIPTORS_DISCOVERED body:[paramDic copy]];
+    NSLog(@"%@+++didDiscoverDescriptorsForCharacteristic+",characteristic);
+    if (error != nil) {
+        [self onBleError:peripheral error:error];
+        return ;
+    }
+    NSArray *descriptors = [characteristic descriptors];
+    //不管有没有descriptor，其父亲service都要加1
+    BOOL isServiceCompleted = [self changePairKey:characteristic.service.UUID.UUIDString addTotal:0 addCount:1];
+    if(isServiceCompleted){
+        BOOL isPeripheralCompleted = [self changePairKey:@"peripheral" addTotal:0 addCount:1];
+        if (isPeripheralCompleted) {
+            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_FINISH_DISCOVER body:[self constructTotalInformation:peripheral]];
+        }
+    }
+    NSMutableArray *descriptorObjects = [[NSMutableArray alloc]init];
+    CBDescriptor *descriptor;
+    for (descriptor in descriptors) {
+        [descriptorObjects addObject:[self constructBleDescriptorObject:descriptor]];
+    }
+    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+    [paramDic setValue: characteristic.service.peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
+    [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
+    [paramDic setValue: characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
+    [paramDic setValue: [descriptorObjects copy] forKey:COMMON_DESCRIPTORS];
+    [paramDic setValue: [self constructBleByteArrayToIntArray:characteristic.value] forKey:COMMON_VALUE];
+    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_DESCRIPTORS_DISCOVERED body:[paramDic copy]];
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didWriteValueForCharacteristic:(nonnull CBCharacteristic *)characteristic error:(nullable NSError *)error {
-  if (error != nil) {
-    [self onBleError:peripheral error:error];
-    return ;
-  }
+    
+    if (error != nil) {
+        [self onBleError:peripheral error:error];
+        NSLog(@"%@didWriteValueForCharacteristic",error);
+        return ;
+    }
   
-  NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-  [paramDic setValue: peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
-  [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
-  [paramDic setValue: characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
-  [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_CHARACTERISTICS_WRITTEN body:[paramDic copy]];
+    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+    NSLog(@"%@ didWriteValueForCharacteristic",characteristic);
+    
+    [paramDic setValue: peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
+    [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
+    [paramDic setValue: characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
+    [paramDic setValue: [self constructBleByteArrayToIntArray:characteristic.value] forKey:COMMON_VALUE];
+    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_CHARACTERISTICS_WRITTEN body:[paramDic copy]];
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(nonnull CBCharacteristic *)characteristic error:(nullable NSError *)error {
-  if (error != nil) {
-    [self onBleError:peripheral error:error];
-    return ;
-  }
-  
-  NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-  [paramDic setValue: peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
-  [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
-  [paramDic setValue: characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
-  [paramDic setValue: [self constructBleByteArrayToIntArray:characteristic.value] forKey:COMMON_VALUE];
-  [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_CHARACTERISTICS_CHANGED body:[paramDic copy]];
-  //为了提示读
-  [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_CHARACTERISTICS_READ body:[paramDic copy]];
+    NSLog(@"2222");
+    if (error != nil) {
+        NSLog(@"%@ didUpdateValueForCharacteristic",error);
+        [self onBleError:peripheral error:error];
+        return ;
+    }
+    NSLog(@"%@ didUpdateValueForCharacteristic",characteristic);
+    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+    [paramDic setValue: peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
+    [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
+    [paramDic setValue: characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
+    [paramDic setValue: [self constructBleByteArrayToIntArray:characteristic.value] forKey:COMMON_VALUE];
+    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_CHARACTERISTICS_CHANGED body:[paramDic copy]];
+    //为了提示读
+    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_CHARACTERISTICS_READ body:[paramDic copy]];
 }
 
 - (void) peripheral:(CBPeripheral *)peripheral didWriteValueForDescriptor:(nonnull CBDescriptor *)descriptor error:(nullable NSError *)error {
-  if (error != nil) {
-    [self onBleError:peripheral error:error];
-    return ;
-  }
-  NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-  [paramDic setValue: peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
-  [paramDic setValue: descriptor.characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
-  [paramDic setValue: descriptor.characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
-  [paramDic setValue: descriptor.UUID.UUIDString forKey:PARAM_COMMON_DESCRIPTOR_UUID];
-  [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_DESCRIPTORS_WRITTEN body:[paramDic copy]];
+    if (error != nil) {
+        [self onBleError:peripheral error:error];
+        return ;
+    }
+    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+    [paramDic setValue: peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
+    [paramDic setValue: descriptor.characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
+    [paramDic setValue: descriptor.characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
+     [paramDic setValue: [self constructBleByteArrayToIntArray:descriptor.value] forKey:COMMON_VALUE];
+    [paramDic setValue: descriptor.UUID.UUIDString forKey:PARAM_COMMON_DESCRIPTOR_UUID];
+    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_DESCRIPTORS_WRITTEN body:[paramDic copy]];
 }
 
 
 - (void) peripheral:(CBPeripheral *)peripheral didUpdateValueForDescriptor:(nonnull CBDescriptor *)descriptor error:(nullable NSError *)error {
-  if (error != nil) {
-    [self onBleError:peripheral error:error];
-    return ;
-  }
-  NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-  [paramDic setValue: peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
-  [paramDic setValue: descriptor.characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
-  [paramDic setValue: descriptor.characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
-  [paramDic setValue: descriptor.UUID.UUIDString forKey:PARAM_COMMON_DESCRIPTOR_UUID];
-  [paramDic setValue: descriptor.value forKey:COMMON_VALUE];
-  [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_DESCRIPTORS_CHANGED body:[paramDic copy]];
-  //为了提示读
-  [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_DESCRIPTORS_READ body:[paramDic copy]];
-  
+    if (error != nil) {
+        [self onBleError:peripheral error:error];
+        return ;
+    }
+    NSLog(@"%@didUpdateValueForDescriptor", descriptor);
+    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+    [paramDic setValue: peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
+    [paramDic setValue: descriptor.characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
+    [paramDic setValue: descriptor.characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
+    [paramDic setValue: descriptor.UUID.UUIDString forKey:PARAM_COMMON_DESCRIPTOR_UUID];
+    [paramDic setValue: [self constructBleByteArrayToIntArray:descriptor.value] forKey:COMMON_VALUE];
+    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_DESCRIPTORS_CHANGED body:[paramDic copy]];
+    //为了提示读
+    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_DESCRIPTORS_READ body:[paramDic copy]];
+    
 }
 /****************************************************************************/
-/*								               Tools                        */
+/*                                               Tools                        */
 /****************************************************************************/
 
 - (void) onBleError:(CBPeripheral *)peripheral error:(NSError *)error {
-  NSMutableDictionary * paramDic = [[NSMutableDictionary alloc]init];
-  if (peripheral != nil) {
-    [paramDic setValue:peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
-  }
-  NSString *errorString = [error localizedDescription];
-  [paramDic setValue:errorString forKey:ERROR_PARAM_MESSAGE];
-  [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_ERROR body:[paramDic copy]];
+    NSMutableDictionary * paramDic = [[NSMutableDictionary alloc]init];
+    if (peripheral != nil) {
+        [paramDic setValue:peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
+    }
+    NSString *errorString = [error localizedDescription];
+    [paramDic setValue:errorString forKey:ERROR_PARAM_MESSAGE];
+    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_ERROR body:[paramDic copy]];
 }
 
 - (NSDictionary *)constructBleServiceObject:(CBService *)service {
-  NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-  [paramDic setValue: service.UUID.UUIDString forKey:COMMON_SERVICE_UUID];
-  NSString *type = @"PRIMARY";
-  if(!service.isPrimary){
-    type = @"SECONDARY";
-  }
-  [paramDic setValue: type forKey:PARAM_TYPE];
-  
-  return [paramDic copy];
+    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+    [paramDic setValue: service.UUID.UUIDString forKey:COMMON_SERVICE_UUID];
+    NSString *type = @"PRIMARY";
+    if(!service.isPrimary){
+        type = @"SECONDARY";
+    }
+    [paramDic setValue: type forKey:PARAM_TYPE];
+    
+    return [paramDic copy];
 }
 
 - (NSDictionary *)constructBleCharacteristicObject:(CBCharacteristic *)characteristic {
-  NSString *notifying = @"false";
-  if (characteristic.isNotifying) {
-    notifying = @"true";
-  }
-  NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-  [paramDic setValue: characteristic.UUID.UUIDString forKey:COMMON_CHARACTERISTIC_UUID];
-  [paramDic setValue: [converter getCharacteristicProperties:characteristic.properties] forKey: PARAM_CHARACTERISTIC_PROPERTIES];
-  [paramDic setValue:notifying forKey:PARAM_CHARACTERISTIC_ISNOTIFYING];
-  [paramDic setValue: characteristic.value forKey:COMMON_VALUE];
-  return [paramDic copy];
+    NSString *notifying = @"false";
+    if (characteristic.isNotifying) {
+        notifying = @"true";
+    }
+    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+    [paramDic setValue: characteristic.UUID.UUIDString forKey:COMMON_CHARACTERISTIC_UUID];
+    [paramDic setValue: [converter getCharacteristicProperties:characteristic.properties] forKey: PARAM_CHARACTERISTIC_PROPERTIES];
+    [paramDic setValue:notifying forKey:PARAM_CHARACTERISTIC_ISNOTIFYING];
+    [paramDic setValue: characteristic.value forKey:COMMON_VALUE];
+    return [paramDic copy];
 }
 
 - (NSDictionary *)constructBleDescriptorObject:(CBDescriptor *)descriptor {
-  NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-  [paramDic setValue: descriptor.UUID.UUIDString forKey:COMMON_DESCRIPTOR_UUID];
-  //Todo这里要看下value的样子[peripheral readValueForDescriptor:descriptor];是异步的
-  [paramDic setValue: descriptor.value forKey:COMMON_VALUE];
-  return [paramDic copy];
+    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+    [paramDic setValue: descriptor.UUID.UUIDString forKey:COMMON_DESCRIPTOR_UUID];
+    //Todo这里要看下value的样子[peripheral readValueForDescriptor:descriptor];是异步的
+    [paramDic setValue: descriptor.value forKey:COMMON_VALUE];
+    return [paramDic copy];
 }
 
 - (NSArray *)constructBleByteArrayToIntArray:(NSData *)data {
-  NSMutableArray *result = [[NSMutableArray alloc]init];
-  Byte *bytes = (Byte *)[data bytes];
-  for (int i=0; i<data.length; i++) {
-  }
-  NSNumber *num;
-  for (int i=0; i<data.length; i++) {
-    num = [NSNumber numberWithInt:(int)bytes[i]];
-    [result addObject:num];
-  }
-  return [result copy];
+    NSMutableArray *result = [[NSMutableArray alloc]init];
+    Byte *bytes = (Byte *)[data bytes];
+    for (int i=0; i<data.length; i++) {
+    }
+    NSNumber *num;
+    for (int i=0; i<data.length; i++) {
+        num = [NSNumber numberWithInt:(int)bytes[i]];
+        [result addObject:num];
+    }
+    return [result copy];
 }
 - (BOOL)changePairKey:(NSString *)key addTotal:(int) total addCount:(int) count {
     NSValue *pairValue = discoverTreeDic[key];
@@ -878,7 +958,7 @@ RCT_EXPORT_METHOD(writeDescriptor:(NSDictionary *)param) {
     NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
     NSMutableArray *characteristicObject = [[NSMutableArray alloc]init];
     NSMutableArray *includedServicesObject = [[NSMutableArray alloc]init];
-
+    
     NSArray *characteristics = service.characteristics;
     CBCharacteristic *characteristic;
     for(characteristic in characteristics) {
@@ -936,3 +1016,4 @@ RCT_EXPORT_METHOD(writeDescriptor:(NSDictionary *)param) {
 
 
 @end
+
