@@ -452,9 +452,11 @@ RCT_EXPORT_METHOD(writeCharacteristic:(NSDictionary *)param) {
                             NSLog(@"%@ ++++++++datacharacteristic", data);
                             [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_CHARACTERISTICS_WRITTEN body:[paramDic copy]];
                         }
-                        // 针对 10.0 以上的iOS系统进行处理
+                        // 针对 10.0 以上 11.0 以下的iOS系统进行处理
                     } else {
+                        NSLog(@"%f version.doubleValue ", version.doubleValue );
                         if(writeType == 1 && l == splitArray.count -1){
+                            
                             NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
                             [paramDic setValue: centralPeripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
                             [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
@@ -463,9 +465,7 @@ RCT_EXPORT_METHOD(writeCharacteristic:(NSDictionary *)param) {
                             NSLog(@"%@ ++++++++datacharacteristic", data);
                             [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_CHARACTERISTICS_WRITTEN body:[paramDic copy]];
                         }
-                        else{
-                            return;
-                        }
+                        
                     }
                     
                 }
