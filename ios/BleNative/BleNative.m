@@ -426,6 +426,7 @@ RCT_EXPORT_METHOD(writeCharacteristic:(NSDictionary *)param) {
                 bytes[i] = (Byte) [num intValue];
             }
             NSData *data = [[NSData alloc] initWithBytes:bytes length:value.count];
+            NSString *version = [UIDevice currentDevice].systemVersion;
             if(value.count > 20){
                 NSArray *splitArray = [self splitArray:value withSubSize:20];
                 NSArray *temp20lengthArr;
@@ -438,9 +439,55 @@ RCT_EXPORT_METHOD(writeCharacteristic:(NSDictionary *)param) {
                         bytes[i] = (Byte) [num intValue];
                     }
                     NSData *data1 = [[NSData alloc] initWithBytes:bytes length:temp20lengthArr.count];
+                    NSLog(@"%@ ++++++++datacharacteristic222", data1);
                     [centralPeripheral writeValue:data1 forCharacteristic:characteristic type:writeType];
-                    if(writeType == 1 && l == splitArray.count -1){
+                    
+                    if (version.doubleValue >= 10.0 && version.doubleValue < 11.0) {
+                        if(l == splitArray.count -1){
+                            NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+                            [paramDic setValue: centralPeripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
+                            [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
+                            [paramDic setValue: characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
+                            [paramDic setValue: [self constructBleByteArrayToIntArray:data] forKey:COMMON_VALUE];
+                            NSLog(@"%@ ++++++++datacharacteristic", data);
+                            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_CHARACTERISTICS_WRITTEN body:[paramDic copy]];
+                        }
+                        // 针对 10.0 以上的iOS系统进行处理
+                    } else {
+                        if(writeType == 1 && l == splitArray.count -1){
+                            NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+                            [paramDic setValue: centralPeripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
+                            [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
+                            [paramDic setValue: characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
+                            [paramDic setValue: [self constructBleByteArrayToIntArray:data] forKey:COMMON_VALUE];
+                            NSLog(@"%@ ++++++++datacharacteristic", data);
+                            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_CHARACTERISTICS_WRITTEN body:[paramDic copy]];
+                        }
+                        else{
+                            return;
+                        }
+                    }
+                    
+                }
+                
+            }
+            else {
+                if (version.doubleValue >= 10.0 && version.doubleValue < 11.0) {
+                    [centralPeripheral writeValue:data forCharacteristic:characteristic type:writeType];
+                    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+                    
+                    [paramDic setValue: centralPeripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
+                    [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
+                    [paramDic setValue: characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
+                    [paramDic setValue: [self constructBleByteArrayToIntArray:data] forKey:COMMON_VALUE];
+                    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_CHARACTERISTICS_WRITTEN body:[paramDic copy]];
+                    
+                }
+                else{
+                    [centralPeripheral writeValue:data forCharacteristic:characteristic type:writeType];
+                    if(writeType == 1){
                         NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+                        
                         [paramDic setValue: centralPeripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
                         [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
                         [paramDic setValue: characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
@@ -449,18 +496,7 @@ RCT_EXPORT_METHOD(writeCharacteristic:(NSDictionary *)param) {
                     }
                 }
                 
-            }
-            else {
-                [centralPeripheral writeValue:data forCharacteristic:characteristic type:writeType];
-                if(writeType == 1){
-                    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-                    //                NSLog(@"%@ ++++++++datacharacteristic", data);
-                    [paramDic setValue: centralPeripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
-                    [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
-                    [paramDic setValue: characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
-                    [paramDic setValue: [self constructBleByteArrayToIntArray:data] forKey:COMMON_VALUE];
-                    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_CHARACTERISTICS_WRITTEN body:[paramDic copy]];
-                }
+                
             }
         }
     }
@@ -794,20 +830,30 @@ RCT_EXPORT_METHOD(writeDescriptor:(NSDictionary *)param) {
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didWriteValueForCharacteristic:(nonnull CBCharacteristic *)characteristic error:(nullable NSError *)error {
-    
-    if (error != nil) {
-        [self onBleError:peripheral error:error];
-        NSLog(@"%@didWriteValueForCharacteristic",error);
-        return ;
+    NSLog(@"didWriteValueForCharacteristic");
+    NSLog(@"%@DEIVX",[[UIDevice currentDevice] systemVersion]);
+    NSString *version = [UIDevice currentDevice].systemVersion;
+    if (version.doubleValue >= 10.0 && version.doubleValue < 11.0) {
+        return;
+        // 针对 10.0 以上的iOS系统进行处理
+    } else {
+        // 针对 10.0 以下的iOS系统进行处理
+        NSLog(@"%@characteristic",characteristic);
+        if (error != nil) {
+            
+            NSLog(@"%@didWriteValueForCharacteristic",error);
+            return ;
+        }
+        
+        NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
+        
+        [paramDic setValue: peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
+        [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
+        [paramDic setValue: characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
+        [paramDic setValue: [self constructBleByteArrayToIntArray:characteristic.value] forKey:COMMON_VALUE];
+        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_CHARACTERISTICS_WRITTEN body:[paramDic copy]];
     }
     
-    NSMutableDictionary *paramDic = [[NSMutableDictionary alloc]init];
-    
-    [paramDic setValue: peripheral.identifier.UUIDString forKey:PARAM_COMMON_PERIPHERAL_UUID];
-    [paramDic setValue: characteristic.service.UUID.UUIDString forKey:PARAM_COMMON_SERVICE_UUID];
-    [paramDic setValue: characteristic.UUID.UUIDString forKey:PARAM_COMMON_CHARACTERISTIC_UUID];
-    [paramDic setValue: [self constructBleByteArrayToIntArray:characteristic.value] forKey:COMMON_VALUE];
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_BLE_CHARACTERISTICS_WRITTEN body:[paramDic copy]];
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(nonnull CBCharacteristic *)characteristic error:(nullable NSError *)error {
